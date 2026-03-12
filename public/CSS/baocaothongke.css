@@ -1,0 +1,436 @@
+ html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .app-wrapper {
+      height: 100%;
+      width: 100%;
+      overflow: auto;
+      background: #f1f5f9;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .data-table th {
+      background: #f8fafc;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #334e68;
+      border-bottom: 2px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    
+    .data-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 14px;
+      color: #475569;
+    }
+    
+    .data-table tbody tr:hover {
+      background: #f8fafc;
+    }
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .badge-active {
+      background: #d1fae5;
+      color: #059669;
+    }
+    
+    .badge-warning {
+      background: #fef3c7;
+      color: #d97706;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: #102a43;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #243b53;
+    }
+    
+    .btn-outline {
+      background: white;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+    
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s;
+      background: white;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #102a43;
+      box-shadow: 0 0 0 3px rgba(16, 42, 67, 0.1);
+    }
+    
+    .form-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+    
+    .form-select:focus {
+      outline: none;
+      border-color: #102a43;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    .stat-content h3 {
+      margin: 0;
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .stat-content p {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      color: #102a43;
+    }
+    
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .pagination button {
+      min-width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e2e8f0;
+      background: white;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .pagination button:hover:not(:disabled) {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+    
+    .pagination button.active {
+      background: #102a43;
+      color: white;
+      border-color: #102a43;
+    }
+    
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .sidebar {
+      width: 260px;
+      background: #102a43;
+      height: 100%;
+      position: fixed;
+      left: 0;
+      top: 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      color: #9fb3c8;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .sidebar-menu a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    
+    .sidebar-menu a.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border-left: 3px solid #38bdf8;
+    }
+    
+    .main-content {
+      margin-left: 260px;
+      min-height: 100%;
+    }
+    
+    .topbar {
+      background: white;
+      height: 64px;
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 2000;
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .toast-success {
+      background: #059669;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: 20px;
+    }
+    
+    @media (max-width: 1024px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+    }
+
+  /* ========================================
+   SIDEBAR TOGGLE COMPATIBILITY
+   ======================================== */
+
+/* Sidebar cơ bản (đảm bảo khớp với dashboard.css) */
+.wms-sidebar {
+  width: var(--sidebar-width, 260px);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  z-index: 100;
+}
+
+.wms-sidebar.collapsed {
+  width: var(--sidebar-collapsed-width, 72px);
+}
+
+/* Main content dịch chuyển theo sidebar */
+.main-content {
+  margin-left: 260px;                    /* giá trị mặc định khi sidebar mở */
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
+}
+
+/* Khi sidebar collapsed */
+.wms-sidebar.collapsed + .main-content,
+.wms-sidebar.collapsed ~ .main-content {
+  margin-left: 72px;                     /* giá trị khi sidebar thu gọn */
+}
+
+/* Đảm bảo topbar/header không bị che */
+.topbar, .header {
+  margin-left: 260px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  background: white;
+}
+
+.wms-sidebar.collapsed ~ .topbar,
+.wms-sidebar.collapsed ~ .header {
+  margin-left: 72px;
+}
+
+/* Mobile responsive (giữ nguyên logic dashboard) */
+@media (max-width: 1024px) {
+  .wms-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .wms-sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .main-content,
+  .topbar,
+  .header {
+    margin-left: 0 !important;
+  }
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;           /* ← thêm dòng này */
+  font-family: 'Inter', sans-serif;
+}
+
+.app-wrapper {
+  height: 100vh;              /* thay vì 100% */
+  width: 100%;
+  overflow: hidden;           /* ← thêm dòng này */
+  background: #f1f5f9;
+  display: flex;              /* ← rất quan trọng */
+  flex-direction: row;
+}
+
+.main-content {
+  margin-left: 260px;
+  flex: 1;                    /* ← cho phép chiếm hết không gian còn lại */
+  overflow-y: auto;           /* ← đây là chìa khóa để scroll được */
+  min-height: 100vh;
+  padding-bottom: 40px;       /* tránh nội dung bị che bởi toast */
+}
+
+/* Nếu bạn có .topbar sticky */
+.topbar {
+  margin-left: 260px;
+  width: calc(100% - 260px);  /* ← rất quan trọng khi sidebar fixed */
+  z-index: 50;
+}
+
+/* Khi sidebar collapse */
+.wms-sidebar.collapsed + .main-content,
+.wms-sidebar.collapsed ~ .main-content {
+  margin-left: 72px;
+}
+
+.wms-sidebar.collapsed ~ .topbar,
+.wms-sidebar.collapsed ~ .header {
+  margin-left: 72px;
+  width: calc(100% - 72px);
+}

@@ -1,0 +1,195 @@
+-- =========================================
+-- HE THONG QUAN LY KHO HANG
+-- Ten bang va ten truong bang tieng viet khong dau
+-- =========================================
+
+CREATE DATABASE IF NOT EXISTS quan_ly_kho 
+CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE quan_ly_kho;
+
+-- =========================================
+-- 1. PHAN QUYEN VA TAI KHOAN
+-- =========================================
+
+-- Bang vai tro nguoi dung
+CREATE TABLE vai_tro (
+    ma_vai_tro INT PRIMARY KEY AUTO_INCREMENT,
+    ten_vai_tro VARCHAR(50) NOT NULL UNIQUE COMMENT 'ADMIN, THU_KHO, QUAN_LY, NHAN_VIEN'
+);
+
+INSERT INTO vai_tro(ten_vai_tro) VALUES
+('ADMIN'),
+('THU_KHO'),
+('QUAN_LY'),
+('NHAN_VIEN');
+
+-- Bang nguoi dung
+CREATE TABLE nguoi_dung (
+    ma_nguoi_dung INT PRIMARY KEY AUTO_INCREMENT,
+    ten_dang_nhap VARCHAR(50) UNIQUE NOT NULL,
+    mat_khau VARCHAR(255) NOT NULL,
+    ho_ten VARCHAR(100),
+    email VARCHAR(100),
+    so_dien_thoai VARCHAR(20),
+    ma_vai_tro INT,
+    trang_thai TINYINT DEFAULT 1 COMMENT '1 hoat dong, 0 bi khoa',
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (ma_vai_tro) REFERENCES vai_tro(ma_vai_tro)
+);
+
+-- Bang lich su he thong
+CREATE TABLE lich_su_he_thong (
+    ma_lich_su INT PRIMARY KEY AUTO_INCREMENT,
+    ma_nguoi_dung INT,
+    hanh_dong VARCHAR(255),
+    thoi_gian DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ma_nguoi_dung) REFERENCES nguoi_dung(ma_nguoi_dung)
+);
+
+-- =========================================
+-- 2. DANH MUC VA HANG HOA
+-- =========================================
+
+-- Bang danh muc hang hoa
+CREATE TABLE danh_muc (
+    ma_danh_muc INT PRIMARY KEY AUTO_INCREMENT,
+    ten_danh_muc VARCHAR(100) NOT NULL,
+    mo_ta TEXT,
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bang nha cung cap
+CREATE TABLE nha_cung_cap (
+    ma_nha_cung_cap INT PRIMARY KEY AUTO_INCREMENT,
+    ten_nha_cung_cap VARCHAR(150) NOT NULL,
+    dia_chi TEXT,
+    so_dien_thoai VARCHAR(20),
+    email VARCHAR(100),
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bang hang hoa
+CREATE TABLE hang_hoa (
+    ma_hang_hoa INT PRIMARY KEY AUTO_INCREMENT,
+    ma_san_pham VARCHAR(50) UNIQUE NOT NULL,
+    ten_hang_hoa VARCHAR(150) NOT NULL,
+    ma_danh_muc INT,
+    ma_nha_cung_cap INT,
+    don_vi_tinh VARCHAR(50),
+    gia_nhap DECIMAL(15,2),
+    trang_thai TINYINT DEFAULT 1 COMMENT '1 dang kinh doanh, 0 ngung kinh doanh',
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (ma_danh_muc) REFERENCES danh_muc(ma_danh_muc),
+    FOREIGN KEY (ma_nha_cung_cap) REFERENCES nha_cung_cap(ma_nha_cung_cap)
+);
+
+-- =========================================
+-- 3. QUAN LY KHO VA TON KHO
+-- =========================================
+
+-- Bang kho
+CREATE TABLE kho (
+    ma_kho INT PRIMARY KEY AUTO_INCREMENT,
+    ten_kho VARCHAR(150) NOT NULL,
+    dia_chi TEXT,
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bang ton kho hien tai
+CREATE TABLE ton_kho (
+    ma_ton_kho INT PRIMARY KEY AUTO_INCREMENT,
+    ma_kho INT,
+    ma_hang_hoa INT,
+    so_luong INT DEFAULT 0,
+    UNIQUE (ma_kho, ma_hang_hoa),
+    FOREIGN KEY (ma_kho) REFERENCES kho(ma_kho),
+    FOREIGN KEY (ma_hang_hoa) REFERENCES hang_hoa(ma_hang_hoa)
+);
+
+-- =========================================
+-- 4. PHIEU NHAP KHO
+-- =========================================
+
+CREATE TABLE phieu_nhap (
+    ma_phieu_nhap INT PRIMARY KEY AUTO_INCREMENT,
+    ma_kho INT,
+    ma_nguoi_tao INT,
+    ma_nguoi_duyet INT,
+    trang_thai TINYINT DEFAULT 0 COMMENT '0 cho duyet, 1 da duyet, 2 tu choi',
+    ghi_chu TEXT,
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ngay_duyet DATETIME,
+    FOREIGN KEY (ma_kho) REFERENCES kho(ma_kho),
+    FOREIGN KEY (ma_nguoi_tao) REFERENCES nguoi_dung(ma_nguoi_dung),
+    FOREIGN KEY (ma_nguoi_duyet) REFERENCES nguoi_dung(ma_nguoi_dung)
+);
+
+CREATE TABLE chi_tiet_phieu_nhap (
+    ma_chi_tiet INT PRIMARY KEY AUTO_INCREMENT,
+    ma_phieu_nhap INT,
+    ma_hang_hoa INT,
+    so_luong INT NOT NULL,
+    gia_nhap DECIMAL(15,2),
+    FOREIGN KEY (ma_phieu_nhap) REFERENCES phieu_nhap(ma_phieu_nhap) ON DELETE CASCADE,
+    FOREIGN KEY (ma_hang_hoa) REFERENCES hang_hoa(ma_hang_hoa)
+);
+
+-- =========================================
+-- 5. PHIEU XUAT KHO
+-- =========================================
+
+CREATE TABLE phieu_xuat (
+    ma_phieu_xuat INT PRIMARY KEY AUTO_INCREMENT,
+    ma_kho INT,
+    ma_nguoi_tao INT,
+    ma_nguoi_duyet INT,
+    trang_thai TINYINT DEFAULT 0 COMMENT '0 cho duyet, 1 da duyet, 2 tu choi',
+    ghi_chu TEXT,
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ngay_duyet DATETIME,
+    FOREIGN KEY (ma_kho) REFERENCES kho(ma_kho),
+    FOREIGN KEY (ma_nguoi_tao) REFERENCES nguoi_dung(ma_nguoi_dung),
+    FOREIGN KEY (ma_nguoi_duyet) REFERENCES nguoi_dung(ma_nguoi_dung)
+);
+
+CREATE TABLE chi_tiet_phieu_xuat (
+    ma_chi_tiet INT PRIMARY KEY AUTO_INCREMENT,
+    ma_phieu_xuat INT,
+    ma_hang_hoa INT,
+    so_luong INT NOT NULL,
+    gia_xuat DECIMAL(15,2),
+    FOREIGN KEY (ma_phieu_xuat) REFERENCES phieu_xuat(ma_phieu_xuat) ON DELETE CASCADE,
+    FOREIGN KEY (ma_hang_hoa) REFERENCES hang_hoa(ma_hang_hoa)
+);
+
+-- =========================================
+-- 6. KIEM KE KHO
+-- =========================================
+
+CREATE TABLE phieu_kiem_ke (
+    ma_phieu_kiem_ke INT PRIMARY KEY AUTO_INCREMENT,
+    ma_kho INT,
+    ma_nguoi_tao INT,
+    ghi_chu TEXT,
+    ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ma_kho) REFERENCES kho(ma_kho),
+    FOREIGN KEY (ma_nguoi_tao) REFERENCES nguoi_dung(ma_nguoi_dung)
+);
+
+CREATE TABLE chi_tiet_kiem_ke (
+    ma_chi_tiet INT PRIMARY KEY AUTO_INCREMENT,
+    ma_phieu_kiem_ke INT,
+    ma_hang_hoa INT,
+    so_luong_he_thong INT COMMENT 'so luong tren he thong',
+    so_luong_thuc_te INT COMMENT 'so luong thuc te',
+    chenh_lech INT COMMENT 'so luong chenh lech',
+    FOREIGN KEY (ma_phieu_kiem_ke) REFERENCES phieu_kiem_ke(ma_phieu_kiem_ke) ON DELETE CASCADE,
+    FOREIGN KEY (ma_hang_hoa) REFERENCES hang_hoa(ma_hang_hoa)
+);
+
+-- =========================================
+-- KET THUC HE THONG QUAN LY KHO
+-- =========================================

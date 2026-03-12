@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning Exam Submission</title>
+    <script src="/_sdk/element_sdk.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/baikiemtra.css">
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+    <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+</head>
+
+<body>
+
+    <div id="app-wrapper">
+        <div class="overlay" id="overlay"></div><!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left"><button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"> <i
+                            class="fas fa-bars"></i> </button>
+                    <div class="logo-section">
+                        <div class="logo-icon"><i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="logo-text">
+                            E-Learning
+                        </div>
+                    </div>
+                </div><button class="user-info-button" aria-label="User menu">
+                    <div class="user-avatar">
+                        NA
+                    </div><span class="user-name" id="user-name">Đào Huy Hoàng</span>
+                </button>
+            </header><!-- PAGE 1: Course Exam List -->
+            <div id="page1" class="page active">
+                <div class="container">
+                    <div class="page-header">
+                        <h1 class="page-title" id="courseListTitle">Bài kiểm tra kết thúc học phần</h1>
+                    </div>
+                    <div class="course-grid">
+                        <div class="course-card" data-course-id="1">
+                            <div class="course-info">
+                                <h3 class="course-name">Nộp bài thi KTHP_Nhóm_Cấu trúc dữ liệu và giải thuật_K15_Có vấn
+                                    đáp
+                                </h3>
+                                <div class="course-meta"><span><span class="deadline-label">Opened:</span> Thứ Năm, 11
+                                        tháng
+                                        12 2025, 8:00 AM</span>
+                                </div>
+                                <div class="course-meta"><span class="deadline-info"> <span
+                                            class="deadline-label">Due:</span> <span>Thứ Bảy, 13 tháng 12 2025, 10:00
+                                            AM</span> </span>
+                                </div><span class="status-badge status-not-submitted">Chưa nộp</span>
+                            </div><button class="button-primary view-exam-btn">Xem bài kiểm tra</button>
+                        </div>
+                        <div class="course-card" data-course-id="2">
+                            <div class="course-info">
+                                <h3 class="course-name">Đồ án cuối kỳ - Lập trình hướng đối tượng</h3>
+                                <div class="course-meta"><span><span class="deadline-label">Opened:</span> Thứ Hai, 8
+                                        tháng
+                                        12 2025, 8:00 AM</span>
+                                </div>
+                                <div class="course-meta"><span class="deadline-info"> <span
+                                            class="deadline-label">Due:</span> <span>Thứ Sáu, 19 tháng 12 2025, 11:59
+                                            PM</span> </span>
+                                </div><span class="status-badge status-submitted">Đã nộp</span>
+                            </div><button class="button-primary view-exam-btn">Xem bài kiểm tra</button>
+                        </div>
+                        <div class="course-card" data-course-id="3">
+                            <div class="course-info">
+                                <h3 class="course-name">Bài tập lớn - Thiết kế cơ sở dữ liệu</h3>
+                                <div class="course-meta"><span><span class="deadline-label">Opened:</span> Thứ Ba, 2
+                                        tháng
+                                        12 2025, 9:00 AM</span>
+                                </div>
+                                <div class="course-meta"><span class="deadline-info"> <span
+                                            class="deadline-label">Due:</span> <span>Thứ Năm, 18 tháng 12 2025, 5:00
+                                            PM</span> </span>
+                                </div><span class="status-badge status-graded">Đã chấm</span>
+                            </div><button class="button-primary view-exam-btn">Xem bài kiểm tra</button>
+                        </div>
+                        <div class="course-card" data-course-id="4">
+                            <div class="course-info">
+                                <h3 class="course-name">Bài kiểm tra giữa kỳ - Mạng máy tính</h3>
+                                <div class="course-meta"><span><span class="deadline-label">Opened:</span> Thứ Sáu, 5
+                                        tháng
+                                        12 2025, 7:00 AM</span>
+                                </div>
+                                <div class="course-meta"><span class="deadline-info"> <span
+                                            class="deadline-label">Due:</span> <span>Chủ Nhật, 21 tháng 12 2025, 11:59
+                                            PM</span> </span>
+                                </div><span class="status-badge status-not-submitted">Chưa nộp</span>
+                            </div><button class="button-primary view-exam-btn">Xem bài kiểm tra</button>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- PAGE 2: Exam Details -->
+            <div id="page2" class="page">
+                <div class="container"><button class="back-button" id="backToList"> <span>←</span> <span
+                            id="backButtonText">Quay lại danh sách</span> </button>
+                    <div class="page-header">
+                        <h1 class="page-title" id="examDetailsTitle">Chi tiết bài kiểm tra</h1>
+                    </div>
+                    <div class="exam-card">
+                        <h2 class="exam-title" id="examNameDisplay">Bài kiểm tra cuối kỳ - Lập trình hướng đối tượng
+                        </h2>
+                        <div class="exam-info-grid">
+                            <div class="info-row">
+                                <div class="info-label">
+                                    Tên bài kiểm tra:
+                                </div>
+                                <div class="info-value" id="examName">
+                                    Đồ án cuối kỳ - Xây dựng ứng dụng quản lý
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">
+                                    Mô tả:
+                                </div>
+                                <div class="info-value" id="examDesc">
+                                    Sinh viên cần hoàn thành một ứng dụng quản lý sử dụng các khái niệm OOP đã học. Bài
+                                    làm
+                                    cần bao gồm mã nguồn, tài liệu thiết kế và báo cáo.
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">
+                                    Hạn nộp:
+                                </div>
+                                <div class="info-value" id="examDeadline">
+                                    25/12/2024 23:59
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">
+                                    Thời gian làm bài:
+                                </div>
+                                <div class="info-value" id="examDuration">
+                                    14 ngày
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">
+                                    Tổng điểm:
+                                </div>
+                                <div class="info-value" id="examPoints">
+                                    100 điểm
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">
+                                    Trạng thái:
+                                </div>
+                                <div class="info-value"><span class="status-badge status-not-submitted"
+                                        id="examStatus">Chưa
+                                        nộp</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="exam-actions"><button class="button-primary" id="submitExamBtn">Nộp bài</button>
+                            <button class="button-secondary">Xem hướng dẫn</button>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- PAGE 3: File Upload Submission -->
+            <div id="page3" class="page">
+                <div class="container"><button class="back-button" id="backToDetails"> <span>←</span> <span
+                            id="backButtonText2">Quay lại danh sách</span> </button>
+                    <div class="page-header">
+                        <h1 class="page-title" id="submissionTitle">Nộp bài kiểm tra</h1>
+                    </div>
+                    <div class="exam-summary">
+                        <h3 class="exam-summary-title" id="summaryExamName">Đồ án cuối kỳ - Xây dựng ứng dụng quản lý
+                        </h3>
+                        <p class="exam-summary-course" id="summaryCourseName">Lập trình hướng đối tượng (IT3103)</p>
+                    </div>
+                    <div class="upload-section">
+                        <div class="message" id="uploadMessage"></div>
+                        <div class="progress-bar" id="progressBar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">
+                                📁
+                            </div>
+                            <p class="upload-text">Kéo thả file vào đây hoặc nhấn để chọn file</p>
+                            <p class="upload-hint">Chấp nhận: PDF, DOCX, ZIP (Tối đa 50MB)</p>
+                        </div><input type="file" id="fileInput" accept=".pdf,.docx,.zip" style="display: none;">
+                        <div class="file-preview" id="filePreview">
+                            <div class="file-icon">
+                                📄
+                            </div>
+                            <div class="file-info">
+                                <p class="file-name" id="fileName">document.pdf</p>
+                                <p class="file-size" id="fileSize">2.5 MB</p>
+                            </div><button class="remove-file" id="removeFile">✕</button>
+                        </div>
+                        <div class="upload-actions"><button class="button-primary" id="confirmSubmitBtn">Xác nhận nộp
+                                bài</button> <button class="button-secondary" id="chooseFileBtn">Chọn file</button>
+                            <button class="button-secondary" id="cancelBtn">Hủy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const defaultConfig = {
+            course_list_title: "Bài kiểm tra kết thúc học phần",
+            exam_details_title: "Chi tiết bài kiểm tra",
+            submission_title: "Nộp bài kiểm tra",
+            view_exam_button: "Xem bài kiểm tra",
+            submit_button: "Nộp bài",
+            back_button: "Quay lại danh sách",
+            confirm_submit_button: "Xác nhận nộp bài",
+            cancel_button: "Hủy",
+            choose_file_button: "Chọn file",
+            primary_color: "#3182ce",
+            background_color: "#f5f7fa",
+            text_color: "#2d3748",
+            card_background: "#ffffff",
+            accent_color: "#2c5aa0"
+        };
+
+        let selectedFile = null;
+        let currentCourse = null;
+
+        async function onConfigChange(config) {
+            const primaryColor = config.primary_color || defaultConfig.primary_color;
+            const backgroundColor = config.background_color || defaultConfig.background_color;
+            const textColor = config.text_color || defaultConfig.text_color;
+            const cardBackground = config.card_background || defaultConfig.card_background;
+            const accentColor = config.accent_color || defaultConfig.accent_color;
+
+            document.body.style.background = backgroundColor;
+            document.body.style.color = textColor;
+
+            document.querySelectorAll('.course-card').forEach(card => {
+                card.style.background = cardBackground;
+            });
+
+            document.querySelectorAll('.exam-card, .upload-section').forEach(card => {
+                card.style.background = cardBackground;
+            });
+
+            document.querySelectorAll('.button-primary').forEach(btn => {
+                btn.style.background = primaryColor;
+            });
+
+            document.querySelectorAll('.button-secondary').forEach(btn => {
+                btn.style.color = primaryColor;
+                btn.style.borderColor = primaryColor;
+            });
+
+            document.querySelectorAll('.back-button').forEach(btn => {
+                btn.style.color = primaryColor;
+            });
+
+            document.getElementById('courseListTitle').textContent = config.course_list_title || defaultConfig.course_list_title;
+            document.getElementById('examDetailsTitle').textContent = config.exam_details_title || defaultConfig.exam_details_title;
+            document.getElementById('submissionTitle').textContent = config.submission_title || defaultConfig.submission_title;
+
+            document.querySelectorAll('.view-exam-btn').forEach(btn => {
+                btn.textContent = config.view_exam_button || defaultConfig.view_exam_button;
+            });
+
+            document.getElementById('submitExamBtn').textContent = config.submit_button || defaultConfig.submit_button;
+            document.getElementById('backButtonText').textContent = config.back_button || defaultConfig.back_button;
+            document.getElementById('backButtonText2').textContent = config.back_button || defaultConfig.back_button;
+            document.getElementById('confirmSubmitBtn').textContent = config.confirm_submit_button || defaultConfig.confirm_submit_button;
+            document.getElementById('cancelBtn').textContent = config.cancel_button || defaultConfig.cancel_button;
+            document.getElementById('chooseFileBtn').textContent = config.choose_file_button || defaultConfig.choose_file_button;
+        }
+
+        function navigateToPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        document.querySelectorAll('.view-exam-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const courseCard = e.target.closest('.course-card');
+                currentCourse = {
+                    id: courseCard.dataset.courseId,
+                    name: courseCard.querySelector('.course-name').textContent,
+                    code: ''
+                };
+                navigateToPage('page2');
+            });
+        });
+
+        document.getElementById('backToList').addEventListener('click', () => {
+            navigateToPage('page1');
+        });
+
+        document.getElementById('submitExamBtn').addEventListener('click', () => {
+            if (currentCourse) {
+                document.getElementById('summaryExamName').textContent = document.getElementById('examName').textContent;
+                document.getElementById('summaryCourseName').textContent = `${currentCourse.name} (${currentCourse.code})`;
+            }
+            navigateToPage('page3');
+        });
+
+        document.getElementById('backToDetails').addEventListener('click', () => {
+            navigateToPage('page2');
+        });
+
+        document.getElementById('uploadArea').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('chooseFileBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('uploadArea').addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.currentTarget.style.borderColor = '#3182ce';
+            e.currentTarget.style.background = '#ebf8ff';
+        });
+
+        document.getElementById('uploadArea').addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.currentTarget.style.borderColor = '#cbd5e0';
+            e.currentTarget.style.background = '#f7fafc';
+        });
+
+        document.getElementById('uploadArea').addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+            e.currentTarget.style.borderColor = '#cbd5e0';
+            e.currentTarget.style.background = '#f7fafc';
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+            document.getElementById('filePreview').classList.add('visible');
+            document.getElementById('uploadArea').classList.add('has-file');
+            hideMessage();
+        }
+
+        document.getElementById('removeFile').addEventListener('click', () => {
+            selectedFile = null;
+            document.getElementById('filePreview').classList.remove('visible');
+            document.getElementById('uploadArea').classList.remove('has-file');
+            document.getElementById('fileInput').value = '';
+        });
+
+        document.getElementById('confirmSubmitBtn').addEventListener('click', () => {
+            if (!selectedFile) {
+                showMessage('Vui lòng chọn file để nộp bài', 'error');
+                return;
+            }
+
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const confirmBtn = document.getElementById('confirmSubmitBtn');
+
+            confirmBtn.disabled = true;
+            progressBar.classList.add('visible');
+            progressFill.style.width = '0%';
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                progressFill.style.width = `${progress}%`;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressBar.classList.remove('visible');
+                        showMessage('Nộp bài thành công! Giảng viên sẽ chấm điểm trong thời gian sớm nhất.', 'success');
+                        confirmBtn.disabled = false;
+                        document.getElementById('filePreview').classList.remove('visible');
+                        document.getElementById('uploadArea').classList.remove('has-file');
+                        selectedFile = null;
+                        document.getElementById('fileInput').value = '';
+                    }, 500);
+                }
+            }, 200);
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            navigateToPage('page2');
+        });
+
+        function showMessage(text, type) {
+            const message = document.getElementById('uploadMessage');
+            message.textContent = text;
+            message.className = `message visible ${type}`;
+        }
+
+        function hideMessage() {
+            const message = document.getElementById('uploadMessage');
+            message.classList.remove('visible');
+        }
+
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig: defaultConfig,
+                onConfigChange: onConfigChange,
+                mapToCapabilities: (config) => ({
+                    recolorables: [
+                        {
+                            get: () => config.background_color || defaultConfig.background_color,
+                            set: (value) => {
+                                config.background_color = value;
+                                window.elementSdk.setConfig({ background_color: value });
+                            }
+                        },
+                        {
+                            get: () => config.card_background || defaultConfig.card_background,
+                            set: (value) => {
+                                config.card_background = value;
+                                window.elementSdk.setConfig({ card_background: value });
+                            }
+                        },
+                        {
+                            get: () => config.text_color || defaultConfig.text_color,
+                            set: (value) => {
+                                config.text_color = value;
+                                window.elementSdk.setConfig({ text_color: value });
+                            }
+                        },
+                        {
+                            get: () => config.primary_color || defaultConfig.primary_color,
+                            set: (value) => {
+                                config.primary_color = value;
+                                window.elementSdk.setConfig({ primary_color: value });
+                            }
+                        },
+                        {
+                            get: () => config.accent_color || defaultConfig.accent_color,
+                            set: (value) => {
+                                config.accent_color = value;
+                                window.elementSdk.setConfig({ accent_color: value });
+                            }
+                        }
+                    ],
+                    borderables: [],
+                    fontEditable: undefined,
+                    fontSizeable: undefined
+                }),
+                mapToEditPanelValues: (config) => new Map([
+                    ["course_list_title", config.course_list_title || defaultConfig.course_list_title],
+                    ["exam_details_title", config.exam_details_title || defaultConfig.exam_details_title],
+                    ["submission_title", config.submission_title || defaultConfig.submission_title],
+                    ["view_exam_button", config.view_exam_button || defaultConfig.view_exam_button],
+                    ["submit_button", config.submit_button || defaultConfig.submit_button],
+                    ["back_button", config.back_button || defaultConfig.back_button],
+                    ["confirm_submit_button", config.confirm_submit_button || defaultConfig.confirm_submit_button],
+                    ["cancel_button", config.cancel_button || defaultConfig.cancel_button],
+                    ["choose_file_button", config.choose_file_button || defaultConfig.choose_file_button]
+                ])
+            });
+        }
+
+        onConfigChange(defaultConfig);
+        const role = localStorage.getItem('role');
+
+        fetch(`/menus/menu-${role}.html`)
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById('sidebar').innerHTML = html;
+                initSidebar();
+            });
+        function initSidebar() {
+            // Sidebar Toggle
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+            }
+
+            menuToggle.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+            // Dropdown Menu
+            document.querySelectorAll('.nav-item[data-submenu]').forEach(item => {
+                item.addEventListener('click', () => {
+                    const submenu = document.getElementById(item.dataset.submenu + '-submenu');
+                    const arrow = item.querySelector('.dropdown-arrow');
+                    submenu.classList.toggle('open');
+                    arrow.classList.toggle('rotated');
+                });
+            });
+
+            // Navigation active
+            document.querySelectorAll('.nav-item[data-page], .submenu-item[data-page]')
+                .forEach(item => {
+                    item.addEventListener('click', e => {
+                        e.stopPropagation();
+                        document.querySelectorAll('.nav-item')
+                            .forEach(m => m.classList.remove('active'));
+
+                        if (item.classList.contains('submenu-item')) {
+                            item.closest('.submenu').previousElementSibling.classList.add('active');
+                        } else {
+                            item.classList.add('active');
+                        }
+                    });
+                });
+        }
+        if (role === 'sinh_vien') {
+            menuTitle.innerText = 'SINH VIÊN';
+            show(
+                ['home', 'courses', 'lectures', 'materials', 'submit', 'grades', 'profile'],
+                ['learning', 'tests', 'account']
+            );
+        }
+
+        if (role === 'giang_vien') {
+            menuTitle.innerText = 'GIẢNG VIÊN';
+            show(
+                ['home', 'courses', 'lectures', 'materials', 'submit'],
+                ['learning', 'tests']
+            );
+        }
+
+        if (role === 'admin') {
+            menuTitle.innerText = 'ADMIN';
+            show(
+                ['home', 'profile'],
+                ['account']
+            );
+        }
+    </script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'9b05b9d3458808ed',t:'MTc2NjEzNDk5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
+
+</html>
