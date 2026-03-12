@@ -88,7 +88,7 @@ Technology Stack
 │   └── PHP
 │
 ├── Database
-│   └── Oracle Database
+│   └── Mysql
 │
 ├── Frontend
 │   ├── HTML
