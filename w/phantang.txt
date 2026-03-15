@@ -1,0 +1,41 @@
+Thủ Kho
+    Hàng hóa 
+    Danh Mục
+    Nhà Cung Cấp
+    Kho Hàng
+    Tồn Kho
+    Nhập Hàng
+    Xuất Hàng
+    Báo Cáo
+    Kiểm Kê kho
+Admin
+    Tổng Quan
+        Dashboard
+    Thông Tin & Hàng Hóa
+        Hàng hóa
+        Danh muc
+        Nhà cung Cấp
+        Kho Hàng
+        Tồn Kho
+    Hoạt động
+        Nhập Hàng
+        Xuất Hàng
+        Duyệt Phiếu Nhập
+        Duyệt Phiếu Xuất
+        Báo Cáo
+        Kiểm Kê Kho
+    Hệ Thông
+        Quản Lý Người Dùng
+        Quản Lý Vai Trò
+        Lịch Sử Hệ thống
+Quản Lý
+    Hàng hóa 
+    Danh Mục
+    Nhà Cung Cấp
+    Kho Hàng
+    Tồn Kho
+    Nhập Hàng
+    Xuất Hàng
+    Báo Cáo
+    Duyệt Phiếu Nhập
+    Duyệt Phiếu Xuất

@@ -1085,22 +1085,67 @@ $username = $_SESSION["ten_dang_nhap"];
     }
 
     function renderReportChart(reportType, thongKe) {
-        setTimeout(() => {
-            const ctx = document.getElementById('reportChart')?.getContext('2d');
-            if (!ctx) return;
+    setTimeout(() => {
+        const canvas = document.getElementById('reportChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-            let chartConfig = {};
+        // Xóa chart cũ nếu tồn tại
+        if (reportCharts[reportType]) {
+            reportChlets[reportType].destroy();
+            reportCharts[reportType] = null;
+        }
 
-            switch(reportType) {
-                case 'import':
-                case 'export':
+        // Kiểm tra dữ liệu
+        if (!thongKe) {
+            showToast('Không có dữ liệu để hiển thị biểu đồ', 'warning');
+            return;
+        }
+
+        let chartConfig = null;
+
+        switch(reportType) {
+            case 'import':
+            case 'export':
+                // Lấy dữ liệu theo ngày
+                const theoNgay = thongKe?.theo_ngay || {};
+                const labels = Object.keys(theoNgay);
+                const values = Object.values(theoNgay).map(v => Number(v) || 0);
+                
+                if (labels.length === 0) {
+                    // Dữ liệu mẫu nếu không có
+                    chartConfig = {
+                        type: 'bar',
+                        data: {
+                            labels: ['Không có dữ liệu'],
+                            datasets: [{
+                                label: 'Giá trị (VNĐ)',
+                                data: [0],
+                                backgroundColor: '#cccccc'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                title: {
+                                    display: true,
+                                    text: 'Không có dữ liệu để hiển thị'
+                                }
+                            }
+                        }
+                    };
+                } else {
                     chartConfig = {
                         type: reportType === 'import' ? 'bar' : 'line',
                         data: {
-                            labels: Object.keys(thongKe?.theo_ngay || {}),
+                            labels: labels,
                             datasets: [{
-                                label: 'Giá trị (VNĐ)',
-                                data: Object.values(thongKe?.theo_ngay || {}),
+                                label: reportType === 'import' ? 'Giá trị nhập' : 'Giá trị xuất',
+                                data: values,
                                 backgroundColor: reportType === 'import' ? '#102a43' : '#dc2626',
                                 borderColor: reportType === 'import' ? '#102a43' : '#dc2626',
                                 borderWidth: 2,
@@ -1138,17 +1183,47 @@ $username = $_SESSION["ten_dang_nhap"];
                             }
                         }
                     };
-                    break;
-                case 'inventory':
-                    const labels = Object.keys(thongKe?.theo_danh_muc || {});
-                    const values = Object.values(thongKe?.theo_danh_muc || {}).map(item => item.gia_tri);
-                    
+                }
+                break;
+
+            case 'inventory':
+                // Dữ liệu tồn kho theo danh mục
+                const theoDanhMuc = thongKe?.theo_danh_muc || {};
+                const dmLabels = Object.keys(theoDanhMuc);
+                const dmValues = dmLabels.map(key => {
+                    const item = theoDanhMuc[key];
+                    return Number(item?.gia_tri || item || 0);
+                });
+                
+                if (dmLabels.length === 0) {
                     chartConfig = {
                         type: 'doughnut',
                         data: {
-                            labels: labels,
+                            labels: ['Chưa có dữ liệu'],
                             datasets: [{
-                                data: values,
+                                data: [1],
+                                backgroundColor: ['#cccccc']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' },
+                                title: {
+                                    display: true,
+                                    text: 'Chưa có dữ liệu tồn kho theo danh mục'
+                                }
+                            }
+                        }
+                    };
+                } else {
+                    chartConfig = {
+                        type: 'doughnut',
+                        data: {
+                            labels: dmLabels,
+                            datasets: [{
+                                data: dmValues,
                                 backgroundColor: ['#102a43', '#0284c7', '#059669', '#d97706', '#7c3aed', '#db2777']
                             }]
                         },
@@ -1161,10 +1236,9 @@ $username = $_SESSION["ten_dang_nhap"];
                                     callbacks: {
                                         label: function(context) {
                                             let label = context.label || '';
+                                            const value = context.raw || 0;
                                             if (label) label += ': ';
-                                            if (context.parsed !== null) {
-                                                label += formatCurrency(context.parsed);
-                                            }
+                                            label += formatCurrency(value);
                                             return label;
                                         }
                                     }
@@ -1172,22 +1246,47 @@ $username = $_SESSION["ten_dang_nhap"];
                             }
                         }
                     };
-                    break;
-                case 'movement':
+                }
+                break;
+
+            case 'movement':
+                // Dữ liệu nhập-xuất-tồn
+                if (!reportData || reportData.length === 0) {
+                    chartConfig = {
+                        type: 'bar',
+                        data: {
+                            labels: ['Không có dữ liệu'],
+                            datasets: [
+                                { label: 'Nhập', data: [0], backgroundColor: '#059669' },
+                                { label: 'Xuất', data: [0], backgroundColor: '#dc2626' }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Không có dữ liệu nhập-xuất'
+                                }
+                            }
+                        }
+                    };
+                } else {
                     const topProducts = reportData.slice(0, 10);
                     chartConfig = {
                         type: 'bar',
                         data: {
-                            labels: topProducts.map(item => item.ma_san_pham),
+                            labels: topProducts.map(item => item.ma_san_pham || 'N/A'),
                             datasets: [
                                 {
                                     label: 'Nhập',
-                                    data: topProducts.map(item => item.tong_nhap),
+                                    data: topProducts.map(item => Number(item.tong_nhap || 0)),
                                     backgroundColor: '#059669'
                                 },
                                 {
                                     label: 'Xuất',
-                                    data: topProducts.map(item => item.tong_xuat),
+                                    data: topProducts.map(item => Number(item.tong_xuat || 0)),
                                     backgroundColor: '#dc2626'
                                 }
                             ]
@@ -1196,29 +1295,54 @@ $username = $_SESSION["ten_dang_nhap"];
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: {
-                                legend: { position: 'top' }
+                                legend: { position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${context.dataset.label}: ${formatNumber(context.raw)}`;
+                                        }
+                                    }
+                                }
                             },
                             scales: {
                                 y: { beginAtZero: true }
                             }
                         }
                     };
-                    break;
-                case 'product':
-                    const topProducts2 = reportData.slice(0, 10);
+                }
+                break;
+
+            case 'product':
+                if (!reportData || reportData.length === 0) {
                     chartConfig = {
                         type: 'bar',
                         data: {
-                            labels: topProducts2.map(item => item.ma_san_pham),
+                            labels: ['Không có dữ liệu'],
+                            datasets: [
+                                { label: 'Giá trị nhập', data: [0], backgroundColor: '#102a43' },
+                                { label: 'Giá trị xuất', data: [0], backgroundColor: '#d97706' }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    };
+                } else {
+                    const topProducts = reportData.slice(0, 10);
+                    chartConfig = {
+                        type: 'bar',
+                        data: {
+                            labels: topProducts.map(item => item.ma_san_pham || 'N/A'),
                             datasets: [
                                 {
-                                    label: 'Giá trị nhập',
-                                    data: topProducts2.map(item => item.gia_tri_nhap / 1000000), // Chia cho triệu để dễ nhìn
+                                    label: 'Giá trị nhập (Triệu VNĐ)',
+                                    data: topProducts.map(item => (Number(item.gia_tri_nhap || 0) / 1000000)),
                                     backgroundColor: '#102a43'
                                 },
                                 {
-                                    label: 'Giá trị xuất',
-                                    data: topProducts2.map(item => item.gia_tri_xuat / 1000000),
+                                    label: 'Giá trị xuất (Triệu VNĐ)',
+                                    data: topProducts.map(item => (Number(item.gia_tri_xuat || 0) / 1000000)),
                                     backgroundColor: '#d97706'
                                 }
                             ]
@@ -1231,12 +1355,8 @@ $username = $_SESSION["ten_dang_nhap"];
                                 tooltip: {
                                     callbacks: {
                                         label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) label += ': ';
-                                            if (context.parsed.y !== null) {
-                                                label += formatCurrency(context.parsed.y * 1000000);
-                                            }
-                                            return label;
+                                            const value = context.raw * 1000000;
+                                            return `${context.dataset.label}: ${formatCurrency(value)}`;
                                         }
                                     }
                                 }
@@ -1253,15 +1373,35 @@ $username = $_SESSION["ten_dang_nhap"];
                             }
                         }
                     };
-                    break;
-                case 'supplier':
+                }
+                break;
+
+            case 'supplier':
+                if (!reportData || reportData.length === 0) {
                     chartConfig = {
                         type: 'bar',
                         data: {
-                            labels: reportData.slice(0, 10).map(item => item.ten_nha_cung_cap),
+                            labels: ['Không có dữ liệu'],
                             datasets: [{
                                 label: 'Giá trị nhập',
-                                data: reportData.slice(0, 10).map(item => item.tong_gia_tri),
+                                data: [0],
+                                backgroundColor: '#102a43'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    };
+                } else {
+                    const topSuppliers = reportData.slice(0, 10);
+                    chartConfig = {
+                        type: 'bar',
+                        data: {
+                            labels: topSuppliers.map(item => item.ten_nha_cung_cap || 'N/A'),
+                            datasets: [{
+                                label: 'Giá trị nhập',
+                                data: topSuppliers.map(item => Number(item.tong_gia_tri || 0)),
                                 backgroundColor: '#102a43'
                             }]
                         },
@@ -1273,12 +1413,7 @@ $username = $_SESSION["ten_dang_nhap"];
                                 tooltip: {
                                     callbacks: {
                                         label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) label += ': ';
-                                            if (context.parsed.y !== null) {
-                                                label += formatCurrency(context.parsed.y);
-                                            }
-                                            return label;
+                                            return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
                                         }
                                     }
                                 }
@@ -1295,15 +1430,24 @@ $username = $_SESSION["ten_dang_nhap"];
                             }
                         }
                     };
-                    break;
-            }
+                }
+                break;
 
-            if (reportCharts[reportType]) {
-                reportCharts[reportType].destroy();
+            default:
+                return;
+        }
+
+        // Tạo chart mới
+        try {
+            if (chartConfig) {
+                reportCharts[reportType] = new Chart(ctx, chartConfig);
             }
-            reportCharts[reportType] = new Chart(ctx, chartConfig);
-        }, 100);
-    }
+        } catch (error) {
+            console.error('Lỗi tạo biểu đồ:', error);
+            showToast('Lỗi hiển thị biểu đồ', 'error');
+        }
+    }, 200); // Tăng timeout lên 200ms để đảm bảo DOM đã render
+}
 
     async function applyReportFilter(reportType) {
         currentPage = 1;
