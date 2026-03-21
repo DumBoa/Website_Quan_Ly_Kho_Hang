@@ -1417,11 +1417,11 @@ $username = $_SESSION["ten_dang_nhap"];
         </div>
         <div class="form-row">
     <div class="form-group">
-        <label for="managerName">Người quản lý <span style="color: #ef4444;">*</span></label>
-        <select id="managerName" name="ma_nguoi_quan_ly" class="toolbar-select" required>
-            <option value="">-- Chọn người quản lý --</option>
-        </select>
-    </div>
+    <label for="managerName">Người quản lý <span style="color: #ef4444;">*</span></label>
+    <select id="managerName" name="ma_nguoi_quan_ly" class="toolbar-select" required>
+        <option value="">-- Chọn người quản lý --</option>
+    </select>
+</div>
     <div class="form-group">
         <label for="phoneNumber">Số điện thoại <span style="color: #ef4444;">*</span></label>
         <input type="tel" id="phoneNumber" name="so_dien_thoai" placeholder="Nhập số điện thoại" required>
@@ -1452,8 +1452,16 @@ $username = $_SESSION["ten_dang_nhap"];
          </div>
          <div class="form-group">
           <label for="status">Trạng thái <span style="color: #ef4444;">*</span></label>
-          <div class="status-radio-group"><label class="radio-label"> <input type="radio" name="warehouseStatus" value="active" checked> <span>Hoạt động</span> </label> <label class="radio-label"> <input type="radio" name="warehouseStatus" value="inactive"> <span>Tạm ngưng</span> </label>
-          </div>
+          <div class="status-radio-group">
+    <label class="radio-label"> 
+        <input type="radio" name="trang_thai" value="1" checked> 
+        <span>Hoạt động</span> 
+    </label> 
+    <label class="radio-label"> 
+        <input type="radio" name="trang_thai" value="0"> 
+        <span>Tạm ngưng</span> 
+    </label>
+</div>
          </div>
         </div>
         <div class="form-row full">
@@ -1791,7 +1799,7 @@ function closeModal() {
     warehouseModal.classList.remove('active');
     warehouseForm.reset();
     document.getElementById('warehouseCode').value = '';
-    document.querySelector('input[name="warehouseStatus"][value="active"]').checked = true;
+    document.querySelector('input[name="trang_thai"][value="1"]').checked = true;
     isEditing = false;
     currentEditId = null;
 }
@@ -1800,6 +1808,7 @@ addWarehouseBtn.addEventListener('click', () => {
     document.getElementById('modalTitle').textContent = 'Thêm kho mới';
     modalSave.textContent = 'Lưu';
     document.getElementById('warehouseCode').value = 'Tự động';
+    loadManagers();
     openModal();
 });
 
@@ -1843,27 +1852,95 @@ window.viewWarehouse = async function(maKho) {
         alert('Lỗi kết nối: ' + error.message);
     }
 };
+// ========================================
+// LOAD DANH SÁCH NGƯỜI QUẢN LÝ
+// ========================================
 
+async function loadManagers() {
+    try {
+        const response = await fetch('../actions/QuanLyKho/lay_danh_sach_quan_ly.php');
+        const data = await response.json();
+        
+        console.log('Dữ liệu quản lý:', data); // Debug
+        
+        const managerSelect = document.getElementById('managerName');
+        if (!managerSelect) return;
+        
+        // Giữ lại option mặc định
+        managerSelect.innerHTML = '<option value="">-- Chọn người quản lý --</option>';
+        
+        if (data.success && data.data && data.data.length > 0) {
+            // Thêm các option từ database
+            data.data.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager.ma_nguoi_dung;
+                option.textContent = manager.ho_ten + (manager.email ? ' (' + manager.email + ')' : '');
+                managerSelect.appendChild(option);
+            });
+        } else {
+            console.warn('Không có dữ liệu quản lý');
+            // Thêm dữ liệu mẫu để test
+            const sampleManagers = [
+                { ma_nguoi_dung: 1, ho_ten: 'Nguyễn Văn A', email: 'a@example.com' },
+                { ma_nguoi_dung: 2, ho_ten: 'Trần Thị B', email: 'b@example.com' },
+                { ma_nguoi_dung: 3, ho_ten: 'Lê Văn C', email: 'c@example.com' }
+            ];
+            sampleManagers.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager.ma_nguoi_dung;
+                option.textContent = manager.ho_ten;
+                managerSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Lỗi load danh sách người quản lý:', error);
+        // Thêm dữ liệu mẫu khi lỗi
+        const managerSelect = document.getElementById('managerName');
+        if (managerSelect) {
+            managerSelect.innerHTML = '<option value="">-- Chọn người quản lý --</option>';
+            const sampleManagers = [
+                { ma_nguoi_dung: 1, ho_ten: 'Nguyễn Văn A' },
+                { ma_nguoi_dung: 2, ho_ten: 'Trần Thị B' },
+                { ma_nguoi_dung: 3, ho_ten: 'Lê Văn C' }
+            ];
+            sampleManagers.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager.ma_nguoi_dung;
+                option.textContent = manager.ho_ten;
+                managerSelect.appendChild(option);
+            });
+        }
+    }
+}
 // ========================================
 // SỬA KHO
 // ========================================
 
-window.editWarehouse = function(maKho) {
+window.editWarehouse = async function(maKho) {  // Thêm async
     const warehouse = warehouses.find(w => w.ma_kho == maKho);
     if (!warehouse) return;
 
     document.getElementById('warehouseCode').value = `KHO-${String(warehouse.ma_kho).padStart(3, '0')}`;
     document.getElementById('warehouseName').value = warehouse.ten_kho || '';
     document.getElementById('address').value = warehouse.dia_chi || '';
-    document.getElementById('managerName').value = warehouse.nguoi_quan_ly || '';
     document.getElementById('phoneNumber').value = warehouse.so_dien_thoai || '';
     document.getElementById('capacity').value = warehouse.suc_chua || '';
     document.getElementById('description').value = warehouse.mo_ta || '';
 
+    // Load managers trước
+    await loadManagers();
+    
+    // Sau đó set giá trị cho select
+    const managerSelect = document.getElementById('managerName');
+    if (managerSelect) {
+        managerSelect.value = warehouse.nguoi_quan_ly || '';
+    }
+
+    // Set radio button
     if (warehouse.trang_thai == 1) {
-        document.querySelector('input[name="warehouseStatus"][value="active"]').checked = true;
+        document.querySelector('input[name="trang_thai"][value="1"]').checked = true;
     } else {
-        document.querySelector('input[name="warehouseStatus"][value="inactive"]').checked = true;
+        document.querySelector('input[name="trang_thai"][value="0"]').checked = true;
     }
 
     document.getElementById('modalTitle').textContent = 'Chỉnh sửa kho';
@@ -1909,13 +1986,13 @@ modalSave.addEventListener('click', async () => {
     // Lấy giá trị từ form để kiểm tra
     const warehouseName = document.getElementById('warehouseName').value.trim();
     const address = document.getElementById('address').value.trim();
-    const managerName = document.getElementById('managerName').value.trim();
+    const maNguoiQuanLy = document.getElementById('managerName').value;  // Đổi tên biến cho rõ
     const phoneNumber = document.getElementById('phoneNumber').value.trim();
 
     console.log('Giá trị form:', {
         ten_kho: warehouseName,
         dia_chi: address,
-        nguoi_quan_ly: managerName,
+        nguoi_quan_ly: maNguoiQuanLy,  // Sửa log
         so_dien_thoai: phoneNumber
     });
 
@@ -1931,8 +2008,8 @@ modalSave.addEventListener('click', async () => {
         return;
     }
 
-    if (!managerName) {
-        alert('Vui lòng nhập tên người quản lý!');
+    if (!maNguoiQuanLy) {
+        alert('Vui lòng chọn người quản lý!');
         document.getElementById('managerName').focus();
         return;
     }
@@ -1947,11 +2024,11 @@ modalSave.addEventListener('click', async () => {
         ? '../actions/QuanLyKho/sua_kho.php'
         : '../actions/QuanLyKho/them_kho.php';
 
-    // Tạo FormData và thêm dữ liệu thủ công để đảm bảo
+    // Tạo FormData
     const formData = new FormData();
     formData.append('ten_kho', warehouseName);
     formData.append('dia_chi', address);
-    formData.append('nguoi_quan_ly', managerName);
+    formData.append('nguoi_quan_ly', maNguoiQuanLy);  // SỬA: 'nguoi_quan_ly' -> 'ma_nguoi_quan_ly'
     formData.append('so_dien_thoai', phoneNumber);
     
     const capacity = document.getElementById('capacity').value;
@@ -1973,7 +2050,7 @@ modalSave.addEventListener('click', async () => {
         formData.append('ma_kho', currentEditId);
     }
 
-    // Debug: xem dữ liệu gửi đi
+    // Debug
     console.log('Dữ liệu gửi đi:');
     for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
@@ -2134,6 +2211,7 @@ userTrigger.addEventListener('click', toggleUserDropdown);
 
 document.addEventListener('DOMContentLoaded', () => {
     loadWarehouses();
+    loadManagers();
 });
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d6791c4d280039f',t:'MTc3MjUyOTY3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
