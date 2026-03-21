@@ -1810,5 +1810,48 @@ document.getElementById('complete-btn').addEventListener('click', completeAudit)
             });
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+  // 2. Cấu hình các tùy chọn cho nút bấm (Widget)
+  const options = {
+    bottom: '32px', // cách đáy
+    right: '32px',  // cách phải
+    left: 'unset', 
+    time: '2.5s',   // thời gian chuyển màu
+    mixColor: '#fff', 
+    backgroundColor: '#fff',  
+    buttonColorDark: '#100f2c', 
+    buttonColorLight: '#fff',
+    saveInCookies: true, // Thư viện có sẵn tính năng lưu vào Cookie
+    label: '🌓', // Icon của nút
+    autoMatchOsTheme: true // Tự động khớp với chế độ của máy tính
+  }
+
+  // 3. Khởi tạo
+  const darkmode = new Darkmode(options);
+  
+  // Hiển thị cái nút tròn ở góc màn hình
+  darkmode.showWidget();
+
+  // 4. Mẹo nhỏ để ép nó hoạt động trên mọi trang:
+  // Nếu Cookie không hoạt động tốt trên InfinityFree, ta dùng thêm LocalStorage
+  window.addEventListener('load', () => {
+    if (localStorage.getItem('darkmode') === 'true') {
+      if (!darkmode.isActivated()) {
+        darkmode.toggle();
+      }
+    }
+  });
+
+  // Lắng nghe lúc người dùng bấm vào cái nút tròn đó
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('darkmode-toggle')) {
+        setTimeout(() => {
+            localStorage.setItem('darkmode', darkmode.isActivated());
+        }, 100);
+    }
+  });
+</script>
 </body>
 </html>
