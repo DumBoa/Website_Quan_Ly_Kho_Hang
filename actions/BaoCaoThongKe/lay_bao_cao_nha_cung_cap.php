@@ -17,6 +17,9 @@ try {
     $tu_ngay = isset($_GET['tu_ngay']) ? $_GET['tu_ngay'] : date('Y-m-01');
     $den_ngay = isset($_GET['den_ngay']) ? $_GET['den_ngay'] : date('Y-m-d');
 
+    // Debug: Log tham số
+    error_log("Tu ngay: $tu_ngay, Den ngay: $den_ngay");
+
     // Lấy danh sách nhà cung cấp và thống kê
     $sql = "
         SELECT 
@@ -44,22 +47,35 @@ try {
     $result = $stmt->get_result();
 
     $data = [];
+    $tong_ncc = 0;
+    $tong_phieu = 0;
+    $tong_sl = 0;
+    $tong_gt = 0;
+    $monthly_stats = [];
+
     while ($row = $result->fetch_assoc()) {
-        $data[] = [
-            'ma_nha_cung_cap' => $row['ma_nha_cung_cap'],
-            'ten_nha_cung_cap' => $row['ten_nha_cung_cap'],
-            'nguoi_lien_he' => $row['nguoi_lien_he'] ?? '',
-            'so_dien_thoai' => $row['so_dien_thoai'] ?? '',
-            'email' => $row['email'] ?? '',
-            'so_phieu_nhap' => (int)$row['so_phieu_nhap'],
-            'so_san_pham' => (int)$row['so_san_pham'],
-            'tong_so_luong' => (int)$row['tong_so_luong'],
-            'tong_gia_tri' => (float)$row['tong_gia_tri']
-        ];
+        // Chỉ thêm vào data nếu có dữ liệu
+        if ($row['so_phieu_nhap'] > 0 || $row['so_san_pham'] > 0 || $row['tong_gia_tri'] > 0) {
+            $data[] = [
+                'ma_nha_cung_cap' => $row['ma_nha_cung_cap'],
+                'ten_nha_cung_cap' => $row['ten_nha_cung_cap'],
+                'nguoi_lien_he' => $row['nguoi_lien_he'] ?? '',
+                'so_dien_thoai' => $row['so_dien_thoai'] ?? '',
+                'email' => $row['email'] ?? '',
+                'so_phieu_nhap' => (int)$row['so_phieu_nhap'],
+                'so_san_pham' => (int)$row['so_san_pham'],
+                'tong_so_luong' => (int)$row['tong_so_luong'],
+                'tong_gia_tri' => (float)$row['tong_gia_tri']
+            ];
+
+            $tong_ncc++;
+            $tong_phieu += (int)$row['so_phieu_nhap'];
+            $tong_sl += (int)$row['tong_so_luong'];
+            $tong_gt += (float)$row['tong_gia_tri'];
+        }
     }
 
     // Thống kê theo tháng
-    $monthly_stats = [];
     $thang_sql = "
         SELECT 
             MONTH(pn.ngay_tao) as thang,
@@ -79,22 +95,28 @@ try {
     $monthly_result = $monthly_stmt->get_result();
     
     while ($row = $monthly_result->fetch_assoc()) {
-        $monthly_stats["Tháng {$row['thang']}/{$row['nam']}"] = $row['tong_gt'];
+        $key = "Tháng {$row['thang']}/{$row['nam']}";
+        $monthly_stats[$key] = (float)$row['tong_gt'];
     }
+
+    // Debug: Log kết quả
+    error_log("So luong nha cung cap: " . count($data));
+    error_log("Tong gia tri: " . $tong_gt);
 
     echo json_encode([
         'success' => true,
         'data' => $data,
         'thong_ke' => [
-            'tong_nha_cung_cap' => count($data),
-            'tong_phieu_nhap' => array_sum(array_column($data, 'so_phieu_nhap')),
-            'tong_so_luong' => array_sum(array_column($data, 'tong_so_luong')),
-            'tong_gia_tri' => array_sum(array_column($data, 'tong_gia_tri')),
+            'tong_nha_cung_cap' => $tong_ncc,
+            'tong_phieu_nhap' => $tong_phieu,
+            'tong_so_luong' => $tong_sl,
+            'tong_gia_tri' => $tong_gt,
             'theo_thang' => $monthly_stats
         ]
     ]);
 
 } catch (Exception $e) {
+    error_log("Loi: " . $e->getMessage());
     echo json_encode([
         'success' => false, 
         'message' => $e->getMessage()
