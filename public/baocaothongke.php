@@ -25,7 +25,7 @@ $username = $_SESSION["ten_dang_nhap"];
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="stylesheet" href="../public/CSS/baocaothongke.css">
   <link rel="stylesheet" href="../public/CSS/dashboard.css">
@@ -55,7 +55,51 @@ $username = $_SESSION["ten_dang_nhap"];
     }
   </script>
   <style>
-   
+/* Container cho biểu đồ */
+.chart-container {
+    width: 100%;
+    height: 400px; /* Tăng chiều cao */
+    min-height: 400px;
+    max-height: 500px;
+    position: relative;
+    margin: 10px 0 20px 0;
+    padding: 10px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Dark mode support cho ECharts */
+.darkmode--activated .chart-container {
+    background: #1a1a2e;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 350px;
+        min-height: 350px;
+        padding: 5px;
+    }
+}
+
+/* Thêm animation khi load */
+@keyframes chartFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chart-container {
+    animation: chartFadeIn 0.5s ease-out;
+
+}
   </style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <style>body { box-sizing: border-box; }</style>
@@ -348,17 +392,18 @@ $username = $_SESSION["ten_dang_nhap"];
     }
 
     async function loadDanhMucList() {
-        try {
-            const response = await fetch('../actions/BaoCaoThongKe/lay_danh_sach_danh_muc.php');
-            const result = await response.json();
+    try {
+        // Sửa tên file từ 'lay_danh_sach_danh_muc.php' thành 'lay_danh_sach_muc.php'
+        const response = await fetch('../actions/BaoCaoThongKe/lay_danh_sach_danh_muc.php');
+        const result = await response.json();
 
-            if (result.success) {
-                danhMucList = result.data;
-            }
-        } catch (error) {
-            console.error('Error loading category list:', error);
+        if (result.success) {
+            danhMucList = result.data;
         }
+    } catch (error) {
+        console.error('Error loading category list:', error);
     }
+}
 
     async function loadBaoCaoNhap(tuNgay, denNgay, maNCC, maKho) {
         try {
@@ -526,16 +571,21 @@ $username = $_SESSION["ten_dang_nhap"];
     }
 
     function backToDashboard() {
-        currentReport = null;
-        Object.keys(reportCharts).forEach(key => {
-            if (reportCharts[key]) {
-                reportCharts[key].destroy();
+    currentReport = null;
+    // Dispose ECharts instances và remove event listeners
+    Object.keys(reportCharts).forEach(key => {
+        if (reportCharts[key]) {
+            // Remove resize event listener
+            if (reportCharts[key]._resizeHandler) {
+                window.removeEventListener('resize', reportCharts[key]._resizeHandler);
             }
-        });
-        reportCharts = {};
-        document.getElementById('dashboardView').style.display = 'block';
-        document.getElementById('reportView').style.display = 'none';
-    }
+            reportCharts[key].dispose();
+        }
+    });
+    reportCharts = {};
+    document.getElementById('dashboardView').style.display = 'block';
+    document.getElementById('reportView').style.display = 'none';
+}
 
     // ==================== RENDER REPORT ====================
     async function renderReport(reportType) {
@@ -589,14 +639,24 @@ $username = $_SESSION["ten_dang_nhap"];
                 break;
         }
 
-        if (!result || !result.success) {
-            showToast('Không có dữ liệu', 'warning');
-            return;
-        }
+// Sau khi nhận result
+if (!result || !result.success) {
+    showToast('Không có dữ liệu', 'warning');
+    return;
+}
 
-        reportData = result.data;
-        const thongKe = result.thong_ke;
-        const title = getReportTitle(reportType);
+// Kiểm tra dữ liệu trước khi gán
+console.log('Dữ liệu nhận được:', result);
+
+// Đảm bảo data là mảng
+reportData = Array.isArray(result.data) ? result.data : [];
+const thongKe = result.thong_ke || {};
+const title = getReportTitle(reportType);
+
+// Kiểm tra nếu data rỗng
+if (reportData.length === 0) {
+    showToast('Không có dữ liệu cho báo cáo này', 'info');
+}
 
         let html = `
             <div class="animate-fade-in">
@@ -640,12 +700,24 @@ $username = $_SESSION["ten_dang_nhap"];
                 </div>
 
                 <!-- Chart Section -->
-                <div class="card p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Biểu đồ thống kê</h3>
-                    <div class="chart-container" style="height: 300px;">
-                        <canvas id="reportChart"></canvas>
-                    </div>
-                </div>
+                <div class="card p-4 mb-6">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold text-gray-900">Biểu đồ thống kê</h3>
+        <div class="flex gap-2">
+            <button class="btn-icon btn-sm" onclick="refreshChart()" title="Làm mới">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+            </button>
+            <button class="btn-icon btn-sm" onclick="downloadChart()" title="Tải biểu đồ">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div class="chart-container" id="reportChart"></div>
+</div>
 
                 <!-- Export Buttons -->
                 <div class="flex gap-3 mb-6">
@@ -701,7 +773,96 @@ $username = $_SESSION["ten_dang_nhap"];
         document.getElementById('reportView').innerHTML = html;
         renderReportChart(reportType, thongKe);
     }
+function renderFilterInputs(reportType) {
+    const filterConfigs = {
+        import: ['fromDate', 'toDate', 'supplier', 'warehouse'],
+        export: ['fromDate', 'toDate', 'warehouse', 'department'],
+        inventory: ['warehouse', 'category', 'status'],
+        movement: ['warehouse', 'month', 'year'],
+        product: ['category', 'warehouse', 'status'],
+        supplier: ['fromDate', 'toDate']
+    };
 
+    const filterHTML = {
+        fromDate: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Từ ngày</label>
+                <input type="date" class="form-input" id="filterFromDate" value="${new Date().toISOString().split('T')[0]}">
+            </div>`,
+        toDate: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Đến ngày</label>
+                <input type="date" class="form-input" id="filterToDate" value="${new Date().toISOString().split('T')[0]}">
+            </div>`,
+        supplier: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
+                <select class="form-select" id="filterSupplier">
+                    <option value="">Tất cả</option>
+                    ${nhaCungCapList && nhaCungCapList.length > 0 
+                        ? nhaCungCapList.map(ncc => `<option value="${ncc.ma_nha_cung_cap}">${ncc.ten_nha_cung_cap}</option>`).join('') 
+                        : ''}
+                </select>
+            </div>`,
+        warehouse: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kho</label>
+                <select class="form-select" id="filterWarehouse">
+                    <option value="">Tất cả kho</option>
+                    ${khoList && khoList.length > 0 
+                        ? khoList.map(k => `<option value="${k.ma_kho}">${k.ten_kho}</option>`).join('') 
+                        : ''}
+                </select>
+            </div>`,
+        department: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Bộ phận</label>
+                <select class="form-select" id="filterDepartment">
+                    <option value="">Tất cả</option>
+                    <option value="Kinh doanh">Kinh doanh</option>
+                    <option value="Sản xuất">Sản xuất</option>
+                    <option value="Kỹ thuật">Kỹ thuật</option>
+                    <option value="Hành chính">Hành chính</option>
+                </select>
+            </div>`,
+        category: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
+                <select class="form-select" id="filterCategory">
+                    <option value="">Tất cả</option>
+                    ${danhMucList && danhMucList.length > 0 
+                        ? danhMucList.map(d => `<option value="${d.ma_danh_muc}">${d.ten_danh_muc}</option>`).join('') 
+                        : ''}
+                </select>
+            </div>`,
+        status: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                <select class="form-select" id="filterStatus">
+                    <option value="">Tất cả</option>
+                    <option value="normal">Bình thường</option>
+                    <option value="low-stock">Sắp hết</option>
+                    <option value="out-of-stock">Hết hàng</option>
+                </select>
+            </div>`,
+        month: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tháng</label>
+                <select class="form-select" id="filterMonth">
+                    ${Array.from({length: 12}, (_, i) => `<option value="${i+1}" ${i+1 === new Date().getMonth()+1 ? 'selected' : ''}>Tháng ${i+1}</option>`).join('')}
+                </select>
+            </div>`,
+        year: `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Năm</label>
+                <select class="form-select" id="filterYear">
+                    ${Array.from({length: 5}, (_, i) => `<option value="${new Date().getFullYear() - i}" ${i === 0 ? 'selected' : ''}>${new Date().getFullYear() - i}</option>`).join('')}
+                </select>
+            </div>`
+    };
+
+    return (filterConfigs[reportType] || []).map(filter => filterHTML[filter] || '').join('');
+}
     function renderTableRows(reportType, page) {
         const start = (page - 1) * itemsPerPage;
         const end = Math.min(start + itemsPerPage, reportData.length);
@@ -1047,29 +1208,31 @@ $username = $_SESSION["ten_dang_nhap"];
                 cells.push(`<td class="text-right">${formatNumber(row.tong_xuat || 0)}</td>`);
                 cells.push(`<td class="text-right font-medium">${formatNumber(row.ton_cuoi || 0)}</td>`);
                 break;
-            case 'product':
-                cells.push(`<td class="font-medium">${row.ma_san_pham || ''}</td>`);
-                cells.push(`<td>${row.ten_san_pham || ''}</td>`);
-                cells.push(`<td>${row.danh_muc || ''}</td>`);
-                cells.push(`<td class="text-center">${row.so_lan_nhap || 0}</td>`);
-                cells.push(`<td class="text-center">${row.so_lan_xuat || 0}</td>`);
-                cells.push(`<td class="text-right font-medium">${formatNumber(row.ton_kho || 0)}</td>`);
-                cells.push(`<td class="text-right">${formatCurrency(row.gia_tri_nhap || 0)}</td>`);
-                cells.push(`<td class="text-right">${formatCurrency(row.gia_tri_xuat || 0)}</td>`);
-                break;
-            case 'supplier':
-                cells.push(`<td class="font-medium">${row.ten_nha_cung_cap || ''}</td>`);
-                cells.push(`<td>${row.nguoi_lien_he || ''}</td>`);
-                cells.push(`<td>${row.so_dien_thoai || ''}</td>`);
-                cells.push(`<td class="text-center">${row.so_phieu_nhap || 0}</td>`);
-                cells.push(`<td class="text-center">${row.so_san_pham || 0}</td>`);
-                cells.push(`<td class="text-right">${formatNumber(row.tong_so_luong || 0)}</td>`);
-                cells.push(`<td class="text-right font-medium">${formatCurrency(row.tong_gia_tri || 0)}</td>`);
-                break;
-        }
-
-        return cells.map(cell => cell).join('');
+                    case 'product':
+            cells.push(`<td class="font-medium">${row.ma_san_pham || ''}</td>`);
+            cells.push(`<td>${row.ten_san_pham || ''}</td>`);
+            cells.push(`<td>${row.danh_muc || ''}</td>`);
+            cells.push(`<td class="text-center">${formatNumber(row.so_lan_nhap || 0)}</td>`);
+            cells.push(`<td class="text-center">${formatNumber(row.so_lan_xuat || 0)}</td>`);
+            cells.push(`<td class="text-right font-medium">${formatNumber(row.ton_kho || 0)}</td>`);
+            cells.push(`<td class="text-right">${formatCurrency(row.gia_tri_nhap || 0)}</td>`);
+            cells.push(`<td class="text-right">${formatCurrency(row.gia_tri_xuat || 0)}</td>`);
+            break;
+        case 'supplier':
+            cells.push(`<td class="font-medium">${row.ten_nha_cung_cap || ''}</td>`);
+            cells.push(`<td>${row.nguoi_lien_he || ''}</td>`);
+            cells.push(`<td>${row.so_dien_thoai || ''}</td>`);
+            cells.push(`<td class="text-center">${formatNumber(row.so_phieu_nhap || 0)}</td>`);
+            cells.push(`<td class="text-center">${formatNumber(row.so_san_pham || 0)}</td>`);
+            cells.push(`<td class="text-right">${formatNumber(row.tong_so_luong || 0)}</td>`);
+            cells.push(`<td class="text-right font-medium">${formatCurrency(row.tong_gia_tri || 0)}</td>`);
+            break;
+        default:
+            break;
     }
+
+    return cells.map(cell => cell).join('');
+}
 
     function getStatusBadge(status) {
         if (status === 'out-of-stock' || status === 'Hết hàng') {
@@ -1086,367 +1249,881 @@ $username = $_SESSION["ten_dang_nhap"];
 
     function renderReportChart(reportType, thongKe) {
     setTimeout(() => {
-        const canvas = document.getElementById('reportChart');
-        if (!canvas) return;
+        const chartDom = document.getElementById('reportChart');
+        if (!chartDom) return;
         
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // Xóa chart cũ nếu tồn tại
-        if (reportCharts[reportType]) {
-            reportChlets[reportType].destroy();
-            reportCharts[reportType] = null;
-        }
-
         // Kiểm tra dữ liệu
         if (!thongKe) {
-            showToast('Không có dữ liệu để hiển thị biểu đồ', 'warning');
+            console.warn('Không có dữ liệu thống kê');
+            chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Không có dữ liệu để hiển thị biểu đồ</div>';
             return;
         }
-
-        let chartConfig = null;
+        
+        // Xóa chart cũ nếu tồn tại
+        if (reportCharts[reportType]) {
+            reportCharts[reportType].dispose();
+        }
+        
+        // Khởi tạo chart mới
+        const myChart = echarts.init(chartDom);
+        let option = {};
 
         switch(reportType) {
             case 'import':
-            case 'export':
-                // Lấy dữ liệu theo ngày
-                const theoNgay = thongKe?.theo_ngay || {};
-                const labels = Object.keys(theoNgay);
-                const values = Object.values(theoNgay).map(v => Number(v) || 0);
+                // Biểu đồ cột cho phiếu nhập
+                const importDates = Object.keys(thongKe?.theo_ngay || {});
+                const importValues = Object.values(thongKe?.theo_ngay || {});
                 
-                if (labels.length === 0) {
-                    // Dữ liệu mẫu nếu không có
-                    chartConfig = {
-                        type: 'bar',
-                        data: {
-                            labels: ['Không có dữ liệu'],
-                            datasets: [{
-                                label: 'Giá trị (VNĐ)',
-                                data: [0],
-                                backgroundColor: '#cccccc'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false },
-                                title: {
-                                    display: true,
-                                    text: 'Không có dữ liệu để hiển thị'
-                                }
-                            }
-                        }
-                    };
-                } else {
-                    chartConfig = {
-                        type: reportType === 'import' ? 'bar' : 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: reportType === 'import' ? 'Giá trị nhập' : 'Giá trị xuất',
-                                data: values,
-                                backgroundColor: reportType === 'import' ? '#102a43' : '#dc2626',
-                                borderColor: reportType === 'import' ? '#102a43' : '#dc2626',
-                                borderWidth: 2,
-                                tension: 0.4,
-                                fill: reportType === 'export'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'top' },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) label += ': ';
-                                            if (context.parsed.y !== null) {
-                                                label += formatCurrency(context.parsed.y);
-                                            }
-                                            return label;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: { 
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return formatCurrency(value);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    };
+                if (importDates.length === 0) {
+                    chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Không có dữ liệu nhập trong khoảng thời gian này</div>';
+                    return;
                 }
+                
+                option = {
+                    title: {
+                        text: 'THỐNG KÊ NHẬP KHO THEO NGÀY',
+                        left: 'center',
+                        top: 5,
+                        textStyle: { 
+                            fontSize: 16, 
+                            fontWeight: 'bold',
+                            color: '#102a43'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        formatter: function(params) {
+                            let result = `<b>${params[0].axisValue}</b><br/>`;
+                            params.forEach(param => {
+                                result += `${param.marker} ${param.seriesName}: <b>${formatCurrency(param.value)}</b><br/>`;
+                            });
+                            return result;
+                        },
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        borderColor: '#102a43',
+                        borderWidth: 1,
+                        textStyle: { fontSize: 12 }
+                    },
+                    grid: {
+                        left: '8%',
+                        right: '5%',
+                        top: '20%',
+                        bottom: '15%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: importDates,
+                        axisLabel: { 
+                            rotate: 30,
+                            fontSize: 11,
+                            fontWeight: '500',
+                            interval: 'auto'
+                        },
+                        axisLine: { lineStyle: { color: '#999' } },
+                        axisTick: { alignWithLabel: true }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: 'Giá trị (VNĐ)',
+                        nameLocation: 'middle',
+                        nameGap: 60,
+                        nameTextStyle: { fontSize: 12, fontWeight: '500' },
+                        axisLabel: {
+                            formatter: function(value) {
+                                if (value >= 1000000000) return (value / 1000000000).toFixed(1) + 'B';
+                                if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
+                                return value;
+                            }
+                        },
+                        splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+                    },
+                    series: [{
+                        name: 'Giá trị nhập',
+                        type: 'bar',
+                        data: importValues,
+                        itemStyle: {
+                            color: '#102a43',
+                            borderRadius: [4, 4, 0, 0]
+                        },
+                        barWidth: '60%',
+                        label: {
+                            show: true,
+                            position: 'top',
+                            formatter: function(params) {
+                                if (params.value >= 1000000000) return (params.value / 1000000000).toFixed(1) + 'B';
+                                if (params.value >= 1000000) return (params.value / 1000000).toFixed(1) + 'M';
+                                if (params.value >= 1000) return (params.value / 1000).toFixed(0) + 'K';
+                                return params.value;
+                            },
+                            fontSize: 10,
+                            fontWeight: '500'
+                        }
+                    }],
+                    dataZoom: [
+                        {
+                            type: 'slider',
+                            show: importDates.length > 10,
+                            start: 0,
+                            end: 100,
+                            bottom: 0,
+                            height: 20
+                        }
+                    ]
+                };
                 break;
-
+                
+            case 'export':
+                // Biểu đồ đường cho phiếu xuất
+                const exportDates = Object.keys(thongKe?.theo_ngay || {});
+                const exportValues = Object.values(thongKe?.theo_ngay || {});
+                
+                if (exportDates.length === 0) {
+                    chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Không có dữ liệu xuất trong khoảng thời gian này</div>';
+                    return;
+                }
+                
+                option = {
+                    title: {
+                        text: 'XU HƯỚNG XUẤT KHO THEO NGÀY',
+                        left: 'center',
+                        top: 5,
+                        textStyle: { 
+                            fontSize: 16, 
+                            fontWeight: 'bold',
+                            color: '#102a43'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function(params) {
+                            let result = `<b>${params[0].axisValue}</b><br/>`;
+                            params.forEach(param => {
+                                result += `${param.marker} ${param.seriesName}: <b>${formatCurrency(param.value)}</b><br/>`;
+                            });
+                            return result;
+                        },
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        borderColor: '#dc2626',
+                        borderWidth: 1
+                    },
+                    grid: {
+                        left: '8%',
+                        right: '5%',
+                        top: '20%',
+                        bottom: '15%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: exportDates,
+                        axisLabel: { 
+                            rotate: 30,
+                            fontSize: 11,
+                            interval: 'auto'
+                        },
+                        axisLine: { lineStyle: { color: '#999' } }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: 'Giá trị (VNĐ)',
+                        nameLocation: 'middle',
+                        nameGap: 60,
+                        axisLabel: {
+                            formatter: function(value) {
+                                if (value >= 1000000000) return (value / 1000000000).toFixed(1) + 'B';
+                                if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
+                                return value;
+                            }
+                        },
+                        splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+                    },
+                    series: [{
+                        name: 'Giá trị xuất',
+                        type: 'line',
+                        data: exportValues,
+                        symbol: 'circle',
+                        symbolSize: 8,
+                        lineStyle: {
+                            color: '#dc2626',
+                            width: 3,
+                            shadowColor: 'rgba(220, 38, 38, 0.3)',
+                            shadowBlur: 10
+                        },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(220, 38, 38, 0.3)' },
+                                { offset: 1, color: 'rgba(220, 38, 38, 0.01)' }
+                            ])
+                        },
+                        markPoint: {
+                            data: [
+                                { type: 'max', name: 'Cao nhất' },
+                                { type: 'min', name: 'Thấp nhất' }
+                            ]
+                        }
+                    }],
+                    dataZoom: [
+                        {
+                            type: 'slider',
+                            show: exportDates.length > 10,
+                            start: 0,
+                            end: 100,
+                            bottom: 0,
+                            height: 20
+                        }
+                    ]
+                };
+                break;
+                
             case 'inventory':
-                // Dữ liệu tồn kho theo danh mục
-                const theoDanhMuc = thongKe?.theo_danh_muc || {};
-                const dmLabels = Object.keys(theoDanhMuc);
-                const dmValues = dmLabels.map(key => {
-                    const item = theoDanhMuc[key];
-                    return Number(item?.gia_tri || item || 0);
+                // Biểu đồ tròn cho tồn kho theo danh mục
+                const categoryLabels = Object.keys(thongKe?.theo_danh_muc || {});
+                const categoryValues = Object.values(thongKe?.theo_danh_muc || {}).map(item => item.gia_tri || 0);
+                
+                if (categoryLabels.length === 0) {
+                    chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Không có dữ liệu tồn kho</div>';
+                    return;
+                }
+                
+                option = {
+                    title: {
+                        text: 'CƠ CẤU GIÁ TRỊ TỒN KHO THEO DANH MỤC',
+                        left: 'center',
+                        top: 5,
+                        textStyle: { 
+                            fontSize: 16, 
+                            fontWeight: 'bold',
+                            color: '#102a43'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: function(params) {
+                            return `<b>${params.name}</b><br/>` +
+                                   `Giá trị: ${formatCurrency(params.value)}<br/>` +
+                                   `Tỷ lệ: ${params.percent}%`;
+                        }
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left',
+                        top: 'center',
+                        itemWidth: 10,
+                        itemHeight: 10,
+                        textStyle: { fontSize: 11 }
+                    },
+                    series: [{
+                        name: 'Giá trị tồn kho',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        center: ['55%', '50%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 8,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: true,
+                            position: 'outside',
+                            formatter: function(params) {
+                                return params.percent > 3 ? params.name : '';
+                            },
+                            fontSize: 10
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: '12',
+                                fontWeight: 'bold'
+                            }
+                        },
+                        data: categoryLabels.map((label, index) => ({
+                            name: label,
+                            value: categoryValues[index],
+                            itemStyle: {
+                                color: ['#102a43', '#0284c7', '#059669', '#d97706', '#7c3aed', '#db2777'][index % 6]
+                            }
+                        }))
+                    }]
+                };
+                break;
+                
+            case 'movement':
+                // Biểu đồ kết hợp cho nhập-xuất-tồn
+                if (!reportData || reportData.length === 0) {
+                    chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Không có dữ liệu nhập-xuất-tồn</div>';
+                    return;
+                }
+                
+                const topProducts = reportData.slice(0, 10);
+                const productNames = topProducts.map(item => {
+                    const name = item.ma_san_pham || '';
+                    return name.length > 15 ? name.substring(0, 13) + '...' : name;
                 });
                 
-                if (dmLabels.length === 0) {
-                    chartConfig = {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Chưa có dữ liệu'],
-                            datasets: [{
-                                data: [1],
-                                backgroundColor: ['#cccccc']
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'bottom' },
-                                title: {
-                                    display: true,
-                                    text: 'Chưa có dữ liệu tồn kho theo danh mục'
-                                }
-                            }
+                option = {
+                    title: {
+                        text: 'SO SÁNH NHẬP - XUẤT - TỒN (TOP 10 SẢN PHẨM)',
+                        left: 'center',
+                        top: 5,
+                        textStyle: { 
+                            fontSize: 16, 
+                            fontWeight: 'bold',
+                            color: '#102a43'
                         }
-                    };
-                } else {
-                    chartConfig = {
-                        type: 'doughnut',
-                        data: {
-                            labels: dmLabels,
-                            datasets: [{
-                                data: dmValues,
-                                backgroundColor: ['#102a43', '#0284c7', '#059669', '#d97706', '#7c3aed', '#db2777']
-                            }]
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        formatter: function(params) {
+                            let result = `<b>${params[0].name}</b><br/>`;
+                            let tonDau = 0, tongNhap = 0, tongXuat = 0, tonCuoi = 0;
+                            
+                            params.forEach(param => {
+                                if (param.seriesName === 'Tồn đầu') tonDau = param.value;
+                                if (param.seriesName === 'Nhập') tongNhap = param.value;
+                                if (param.seriesName === 'Xuất') tongXuat = Math.abs(param.value);
+                                if (param.seriesName === 'Tồn cuối') tonCuoi = param.value;
+                                result += `${param.marker} ${param.seriesName}: <b>${formatNumber(Math.abs(param.value))}</b><br/>`;
+                            });
+                            
+                            result += `<hr style="margin: 5px 0">`;
+                            result += `<span style="color: #2563eb">📊 Tồn cuối = Tồn đầu + Nhập - Xuất:</span><br>`;
+                            result += `  ${formatNumber(tonDau)} + ${formatNumber(tongNhap)} - ${formatNumber(tongXuat)} = <b>${formatNumber(tonCuoi)}</b>`;
+                            
+                            return result;
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'bottom' },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            let label = context.label || '';
-                                            const value = context.raw || 0;
-                                            if (label) label += ': ';
-                                            label += formatCurrency(value);
-                                            return label;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    };
-                }
-                break;
-
-            case 'movement':
-                // Dữ liệu nhập-xuất-tồn
-                if (!reportData || reportData.length === 0) {
-                    chartConfig = {
-                        type: 'bar',
-                        data: {
-                            labels: ['Không có dữ liệu'],
-                            datasets: [
-                                { label: 'Nhập', data: [0], backgroundColor: '#059669' },
-                                { label: 'Xuất', data: [0], backgroundColor: '#dc2626' }
-                            ]
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        borderColor: '#059669',
+                        borderWidth: 1
+                    },
+                    legend: {
+                        data: ['Tồn đầu', 'Nhập', 'Xuất', 'Tồn cuối'],
+                        orient: 'horizontal',
+                        left: 'center',
+                        top: 35,
+                        itemWidth: 20,
+                        itemHeight: 10
+                    },
+                    grid: {
+                        left: '8%',
+                        right: '5%',
+                        top: '25%',
+                        bottom: '12%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: productNames,
+                        axisLabel: { 
+                            rotate: 35,
+                            fontSize: 10,
+                            fontWeight: '500',
+                            interval: 0
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Không có dữ liệu nhập-xuất'
-                                }
+                        axisLine: { lineStyle: { color: '#999' } }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: 'Số lượng',
+                        nameLocation: 'middle',
+                        nameGap: 50,
+                        axisLabel: {
+                            formatter: function(value) {
+                                if (value >= 1000) return (value / 1000).toFixed(1) + 'K';
+                                return value;
                             }
-                        }
-                    };
-                } else {
-                    const topProducts = reportData.slice(0, 10);
-                    chartConfig = {
-                        type: 'bar',
-                        data: {
-                            labels: topProducts.map(item => item.ma_san_pham || 'N/A'),
-                            datasets: [
-                                {
-                                    label: 'Nhập',
-                                    data: topProducts.map(item => Number(item.tong_nhap || 0)),
-                                    backgroundColor: '#059669'
+                        },
+                        splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+                    },
+                    series: [
+                        {
+                            name: 'Tồn đầu',
+                            type: 'bar',
+                            stack: 'total',
+                            data: topProducts.map(item => item.ton_dau || 0),
+                            itemStyle: { color: '#94a3b8' },
+                            barWidth: 20,
+                            label: {
+                                show: true,
+                                position: 'inside',
+                                formatter: function(params) {
+                                    return params.value > 0 ? params.value : '';
                                 },
-                                {
-                                    label: 'Xuất',
-                                    data: topProducts.map(item => Number(item.tong_xuat || 0)),
-                                    backgroundColor: '#dc2626'
-                                }
-                            ]
+                                fontSize: 9,
+                                color: '#fff'
+                            }
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'top' },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return `${context.dataset.label}: ${formatNumber(context.raw)}`;
-                                        }
-                                    }
-                                }
+                        {
+                            name: 'Nhập',
+                            type: 'bar',
+                            stack: 'total',
+                            data: topProducts.map(item => item.tong_nhap || 0),
+                            itemStyle: { color: '#059669' },
+                            barWidth: 20,
+                            label: {
+                                show: true,
+                                position: 'inside',
+                                formatter: function(params) {
+                                    return params.value > 0 ? params.value : '';
+                                },
+                                fontSize: 9,
+                                color: '#fff'
+                            }
+                        },
+                        {
+                            name: 'Xuất',
+                            type: 'bar',
+                            stack: 'total',
+                            data: topProducts.map(item => (item.tong_xuat || 0) * -1),
+                            itemStyle: { color: '#dc2626' },
+                            barWidth: 20,
+                            label: {
+                                show: true,
+                                position: 'inside',
+                                formatter: function(params) {
+                                    return params.value < 0 ? Math.abs(params.value) : '';
+                                },
+                                fontSize: 9,
+                                color: '#fff'
+                            }
+                        },
+                        {
+                            name: 'Tồn cuối',
+                            type: 'line',
+                            data: topProducts.map(item => item.ton_cuoi || 0),
+                            symbol: 'diamond',
+                            symbolSize: 10,
+                            lineStyle: {
+                                color: '#2563eb',
+                                width: 3,
+                                type: 'solid'
                             },
-                            scales: {
-                                y: { beginAtZero: true }
+                            itemStyle: { color: '#2563eb' },
+                            smooth: true,
+                            markLine: {
+                                silent: true,
+                                lineStyle: { color: '#333', type: 'dashed' },
+                                data: [
+                                    { type: 'average', name: 'Tồn TB' }
+                                ]
                             }
                         }
-                    };
-                }
+                    ],
+                    dataZoom: [
+                        {
+                            type: 'slider',
+                            show: topProducts.length >= 8,
+                            start: 0,
+                            end: 100,
+                            bottom: 0,
+                            height: 25,
+                            borderColor: '#ccc'
+                        }
+                    ]
+                };
                 break;
-
+                
             case 'product':
+                // Biểu đồ cho báo cáo sản phẩm
                 if (!reportData || reportData.length === 0) {
-                    chartConfig = {
-                        type: 'bar',
-                        data: {
-                            labels: ['Không có dữ liệu'],
-                            datasets: [
-                                { label: 'Giá trị nhập', data: [0], backgroundColor: '#102a43' },
-                                { label: 'Giá trị xuất', data: [0], backgroundColor: '#d97706' }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
+                    chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Không có dữ liệu sản phẩm</div>';
+                    return;
+                }
+                
+                const topProducts2 = reportData.slice(0, 10);
+                const productLabels = topProducts2.map(item => {
+                    const name = item.ten_san_pham || '';
+                    return name.length > 20 ? name.substring(0, 18) + '...' : name;
+                });
+                
+                option = {
+                    title: {
+                        text: 'TOP 10 SẢN PHẨM THEO GIÁ TRỊ NHẬP - XUẤT',
+                        left: 'center',
+                        top: 5,
+                        textStyle: { 
+                            fontSize: 16, 
+                            fontWeight: 'bold',
+                            color: '#102a43'
                         }
-                    };
-                } else {
-                    const topProducts = reportData.slice(0, 10);
-                    chartConfig = {
-                        type: 'bar',
-                        data: {
-                            labels: topProducts.map(item => item.ma_san_pham || 'N/A'),
-                            datasets: [
-                                {
-                                    label: 'Giá trị nhập (Triệu VNĐ)',
-                                    data: topProducts.map(item => (Number(item.gia_tri_nhap || 0) / 1000000)),
-                                    backgroundColor: '#102a43'
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        formatter: function(params) {
+                            let result = `<b>${params[0].name}</b><br/>`;
+                            params.forEach(param => {
+                                let value = param.value;
+                                if (param.seriesName.includes('Giá trị')) {
+                                    value = formatCurrency(value * 1000000);
+                                } else {
+                                    value = formatNumber(value);
+                                }
+                                result += `${param.marker} ${param.seriesName}: <b>${value}</b><br/>`;
+                            });
+                            return result;
+                        },
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        borderColor: '#102a43',
+                        borderWidth: 1
+                    },
+                    legend: {
+                        data: ['Giá trị nhập (triệu)', 'Giá trị xuất (triệu)', 'Tồn kho'],
+                        orient: 'horizontal',
+                        left: 'center',
+                        top: 35,
+                        itemWidth: 20,
+                        itemHeight: 10
+                    },
+                    grid: {
+                        left: '8%',
+                        right: '8%',
+                        top: '25%',
+                        bottom: '12%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: productLabels,
+                        axisLabel: { 
+                            rotate: 30,
+                            fontSize: 10,
+                            fontWeight: '500',
+                            interval: 0
+                        },
+                        axisLine: { lineStyle: { color: '#999' } }
+                    },
+                    yAxis: [
+                        {
+                            type: 'value',
+                            name: 'Giá trị (triệu VNĐ)',
+                            nameLocation: 'middle',
+                            nameGap: 60,
+                            axisLabel: {
+                                formatter: function(value) {
+                                    return value + 'M';
+                                }
+                            },
+                            splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+                        },
+                        {
+                            type: 'value',
+                            name: 'Số lượng',
+                            nameLocation: 'middle',
+                            nameGap: 50,
+                            axisLabel: {
+                                formatter: function(value) {
+                                    return value;
+                                }
+                            },
+                            splitLine: { show: false }
+                        }
+                    ],
+                    series: [
+                        {
+                            name: 'Giá trị nhập (triệu)',
+                            type: 'bar',
+                            data: topProducts2.map(item => ((item.gia_tri_nhap || 0) / 1000000).toFixed(2)),
+                            itemStyle: { color: '#102a43' },
+                            barWidth: 20,
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: function(params) {
+                                    return params.value > 0 ? params.value.toFixed(1) + 'M' : '';
                                 },
-                                {
-                                    label: 'Giá trị xuất (Triệu VNĐ)',
-                                    data: topProducts.map(item => (Number(item.gia_tri_xuat || 0) / 1000000)),
-                                    backgroundColor: '#d97706'
-                                }
-                            ]
+                                fontSize: 9
+                            }
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'top' },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            const value = context.raw * 1000000;
-                                            return `${context.dataset.label}: ${formatCurrency(value)}`;
-                                        }
-                                    }
-                                }
+                        {
+                            name: 'Giá trị xuất (triệu)',
+                            type: 'bar',
+                            data: topProducts2.map(item => ((item.gia_tri_xuat || 0) / 1000000).toFixed(2)),
+                            itemStyle: { color: '#d97706' },
+                            barWidth: 20,
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: function(params) {
+                                    return params.value > 0 ? params.value.toFixed(1) + 'M' : '';
+                                },
+                                fontSize: 9
+                            }
+                        },
+                        {
+                            name: 'Tồn kho',
+                            type: 'line',
+                            data: topProducts2.map(item => item.ton_kho || 0),
+                            symbol: 'circle',
+                            symbolSize: 8,
+                            lineStyle: {
+                                color: '#059669',
+                                width: 2,
+                                type: 'solid'
                             },
-                            scales: {
-                                y: { 
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return value + 'M';
-                                        }
-                                    }
-                                }
+                            itemStyle: { color: '#059669' },
+                            yAxisIndex: 1,
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: function(params) {
+                                    return params.value > 0 ? params.value : '';
+                                },
+                                fontSize: 9,
+                                color: '#059669'
                             }
                         }
-                    };
-                }
+                    ],
+                    dataZoom: [
+                        {
+                            type: 'slider',
+                            show: topProducts2.length >= 8,
+                            start: 0,
+                            end: 100,
+                            bottom: 0,
+                            height: 20
+                        }
+                    ]
+                };
                 break;
-
+                
             case 'supplier':
+                // Biểu đồ cho báo cáo nhà cung cấp
                 if (!reportData || reportData.length === 0) {
-                    chartConfig = {
-                        type: 'bar',
-                        data: {
-                            labels: ['Không có dữ liệu'],
-                            datasets: [{
-                                label: 'Giá trị nhập',
-                                data: [0],
-                                backgroundColor: '#102a43'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
+                    chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Không có dữ liệu nhà cung cấp</div>';
+                    return;
+                }
+                
+                const supplierData = reportData.slice(0, 10);
+                const supplierLabels = supplierData.map(item => {
+                    const name = item.ten_nha_cung_cap || '';
+                    return name.length > 25 ? name.substring(0, 23) + '...' : name;
+                });
+                
+                // Tìm giá trị lớn nhất để scale
+                const maxGiaTri = Math.max(...supplierData.map(item => item.tong_gia_tri || 0));
+                const scaleFactor = maxGiaTri > 1000000000 ? 1000000000 : (maxGiaTri > 1000000 ? 1000000 : 1000);
+                const scaleUnit = scaleFactor === 1000000000 ? 'B' : (scaleFactor === 1000000 ? 'M' : 'K');
+                
+                option = {
+                    title: {
+                        text: 'TOP 10 NHÀ CUNG CẤP THEO GIÁ TRỊ NHẬP',
+                        left: 'center',
+                        top: 5,
+                        textStyle: { 
+                            fontSize: 16, 
+                            fontWeight: 'bold',
+                            color: '#102a43'
                         }
-                    };
-                } else {
-                    const topSuppliers = reportData.slice(0, 10);
-                    chartConfig = {
-                        type: 'bar',
-                        data: {
-                            labels: topSuppliers.map(item => item.ten_nha_cung_cap || 'N/A'),
-                            datasets: [{
-                                label: 'Giá trị nhập',
-                                data: topSuppliers.map(item => Number(item.tong_gia_tri || 0)),
-                                backgroundColor: '#102a43'
-                            }]
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        formatter: function(params) {
+                            let result = `<b>${params[0].name}</b><br/>`;
+                            params.forEach(param => {
+                                let value = param.value;
+                                if (param.seriesName === 'Giá trị nhập') {
+                                    value = formatCurrency(value);
+                                } else {
+                                    value = formatNumber(value);
+                                }
+                                result += `${param.marker} ${param.seriesName}: <b>${value}</b><br/>`;
+                            });
+                            return result;
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'top' },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
-                                        }
-                                    }
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        borderColor: '#102a43',
+                        borderWidth: 1
+                    },
+                    legend: {
+                        data: ['Giá trị nhập', 'Số phiếu', 'Số lượng'],
+                        orient: 'horizontal',
+                        left: 'center',
+                        top: 35,
+                        itemWidth: 20,
+                        itemHeight: 10
+                    },
+                    grid: {
+                        left: '8%',
+                        right: '8%',
+                        top: '25%',
+                        bottom: '12%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: supplierLabels,
+                        axisLabel: { 
+                            rotate: 35,
+                            fontSize: 10,
+                            fontWeight: '500',
+                            interval: 0
+                        },
+                        axisLine: { lineStyle: { color: '#999' } }
+                    },
+                    yAxis: [
+                        {
+                            type: 'value',
+                            name: `Giá trị (${scaleUnit} VNĐ)`,
+                            nameLocation: 'middle',
+                            nameGap: 60,
+                            axisLabel: {
+                                formatter: function(value) {
+                                    if (scaleFactor === 1000000000) return (value / 1000000000).toFixed(1) + 'B';
+                                    if (scaleFactor === 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                    if (scaleFactor === 1000) return (value / 1000).toFixed(0) + 'K';
+                                    return value;
                                 }
                             },
-                            scales: {
-                                y: { 
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return formatCurrency(value);
-                                        }
-                                    }
+                            splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+                        },
+                        {
+                            type: 'value',
+                            name: 'Số lượng/Phiếu',
+                            nameLocation: 'middle',
+                            nameGap: 50,
+                            min: 0,
+                            axisLabel: {
+                                formatter: function(value) {
+                                    return value;
                                 }
+                            },
+                            splitLine: { show: false }
+                        }
+                    ],
+                    series: [
+                        {
+                            name: 'Giá trị nhập',
+                            type: 'bar',
+                            data: supplierData.map(item => item.tong_gia_tri || 0),
+                            itemStyle: { color: '#102a43' },
+                            barWidth: 20,
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: function(params) {
+                                    if (params.value >= 1000000000) return (params.value / 1000000000).toFixed(1) + 'B';
+                                    if (params.value >= 1000000) return (params.value / 1000000).toFixed(1) + 'M';
+                                    if (params.value >= 1000) return (params.value / 1000).toFixed(0) + 'K';
+                                    return params.value;
+                                },
+                                fontSize: 9
+                            }
+                        },
+                        {
+                            name: 'Số phiếu',
+                            type: 'line',
+                            data: supplierData.map(item => item.so_phieu_nhap || 0),
+                            symbol: 'circle',
+                            symbolSize: 8,
+                            lineStyle: {
+                                color: '#059669',
+                                width: 2
+                            },
+                            itemStyle: { color: '#059669' },
+                            yAxisIndex: 1,
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: function(params) {
+                                    return params.value;
+                                },
+                                fontSize: 9,
+                                color: '#059669'
+                            }
+                        },
+                        {
+                            name: 'Số lượng',
+                            type: 'line',
+                            data: supplierData.map(item => item.tong_so_luong || 0),
+                            symbol: 'diamond',
+                            symbolSize: 8,
+                            lineStyle: {
+                                color: '#d97706',
+                                width: 2,
+                                type: 'dashed'
+                            },
+                            itemStyle: { color: '#d97706' },
+                            yAxisIndex: 1,
+                            label: {
+                                show: true,
+                                position: 'bottom',
+                                formatter: function(params) {
+                                    return params.value;
+                                },
+                                fontSize: 9,
+                                color: '#d97706'
                             }
                         }
-                    };
-                }
+                    ],
+                    dataZoom: [
+                        {
+                            type: 'slider',
+                            show: supplierData.length >= 8,
+                            start: 0,
+                            end: 100,
+                            bottom: 0,
+                            height: 20
+                        }
+                    ]
+                };
                 break;
-
+                
             default:
+                chartDom.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Không có biểu đồ cho loại báo cáo này</div>';
                 return;
         }
 
-        // Tạo chart mới
-        try {
-            if (chartConfig) {
-                reportCharts[reportType] = new Chart(ctx, chartConfig);
-            }
-        } catch (error) {
-            console.error('Lỗi tạo biểu đồ:', error);
-            showToast('Lỗi hiển thị biểu đồ', 'error');
-        }
-    }, 200); // Tăng timeout lên 200ms để đảm bảo DOM đã render
+        // Thêm cấu hình chung
+        option = {
+            ...option,
+            backgroundColor: 'transparent',
+            textStyle: {
+                fontFamily: 'Inter, sans-serif'
+            },
+            animation: true,
+            animationDuration: 1000,
+            animationEasing: 'cubicOut',
+            // Responsive
+            media: [
+                {
+                    query: { maxWidth: 768 },
+                    option: {
+                        legend: { orient: 'horizontal', top: 45, left: 'center' },
+                        grid: { top: '30%', bottom: '15%' },
+                        xAxis: { axisLabel: { rotate: 45, fontSize: 9 } }
+                    }
+                }
+            ]
+        };
+
+        // Set option và resize
+        myChart.setOption(option);
+        
+        // Resize để fit container
+        setTimeout(() => {
+            myChart.resize();
+        }, 100);
+        
+        // Lưu chart instance
+        reportCharts[reportType] = myChart;
+        
+        // Xử lý resize
+        const handleResize = () => {
+            myChart.resize();
+        };
+        
+        window.addEventListener('resize', handleResize);
+        myChart._resizeHandler = handleResize;
+        
+    }, 300); // Timeout để đảm bảo DOM đã render
 }
 
     async function applyReportFilter(reportType) {
@@ -1465,7 +2142,31 @@ $username = $_SESSION["ten_dang_nhap"];
         window.print();
         showToast('Đã gửi lệnh in', 'success');
     }
+// Hàm làm mới biểu đồ
+function refreshChart() {
+    if (currentReport && reportCharts[currentReport]) {
+        reportCharts[currentReport].resize();
+        showToast('Đã làm mới biểu đồ', 'success');
+    }
+}
 
+// Hàm tải biểu đồ dạng ảnh
+function downloadChart() {
+    if (currentReport && reportCharts[currentReport]) {
+        const url = reportCharts[currentReport].getDataURL({
+            type: 'png',
+            pixelRatio: 2,
+            backgroundColor: '#fff'
+        });
+        
+        const link = document.createElement('a');
+        link.download = `bieu-do-${currentReport}-${new Date().toISOString().split('T')[0]}.png`;
+        link.href = url;
+        link.click();
+        
+        showToast('Đã tải biểu đồ thành công', 'success');
+    }
+}
     // ==================== SIDEBAR & MOBILE TOGGLE ====================
 document.addEventListener('DOMContentLoaded', function () {
     // Load dữ liệu
