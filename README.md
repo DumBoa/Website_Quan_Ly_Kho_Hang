@@ -3,6 +3,8 @@
 Hệ thống **WMS** là ứng dụng web hỗ trợ quản lý kho hàng, cho phép theo dõi và kiểm soát các hoạt động **nhập kho – xuất kho – tồn kho**.
 Mục tiêu của hệ thống là giúp quản lý dữ liệu kho tập trung, giảm sai sót trong quá trình vận hành và hỗ trợ theo dõi lịch sử hoạt động trong kho.
 
+Link Website: https://warehouse-system.page.gd/
+
 ---
 
 # 🌳 Chức năng hệ thống
@@ -11,37 +13,21 @@ Mục tiêu của hệ thống là giúp quản lý dữ liệu kho tập trung,
 Warehouse Management System
 │
 ├── BangDieuKhien
-│
 ├── BaoCaoThongKe
-│
 ├── DuyetPhieuNhap
-│
 ├── DuyetPhieuXuat
-│
 ├── KiemKeKho
-│
 ├── LichSuHeThong
-│
 ├── Profile
-│
 ├── QuanLyDangNhap
-│
 ├── QuanLyDanhMuc
-│
 ├── QuanLyHangHoa
-│
 ├── QuanLyKho
-│
 ├── QuanLyNguoiDung
-│
 ├── QuanLyNhaCungCap
-│
 ├── QuanLyPhieuNhap
-│
 ├── QuanLyPhieuXuat
-│
 ├── QuanLyVaiTro
-│
 └── TonKho
 ```
 
